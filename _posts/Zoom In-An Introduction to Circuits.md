@@ -8,6 +8,8 @@ tags: [mechanistic-interpretability]
 comments: true
 ---
 
+Article Link : 
+
 이번 논문은 distill 그룹의 Circuit thread 의 첫 번째 Article 이다. 
 
 딥러닝 모델의 내부 메커니즘을 해석하고 싶다는 막연한 생각을 실제적인 연구 질문 3가지로 구체화해준 고마운 논문. 
