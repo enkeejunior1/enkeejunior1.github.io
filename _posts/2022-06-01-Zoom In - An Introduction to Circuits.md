@@ -9,7 +9,10 @@ tags: [mechanistic-interpretability]
 comments: true
 ---
 
-Article Link : [https://distill.pub/2020/circuits/zoom-in/]
+Article Link : [distill article](https://distill.pub/2020/circuits/zoom-in/)
+
+{: .box-note}
+생물학의 세포를 보듯, DNN 의 뉴런을 분석하자.
 
 이번 논문은 distill 그룹의 Circuit thread 의 첫 번째 Article 이다. 
 
@@ -19,7 +22,7 @@ Article Link : [https://distill.pub/2020/circuits/zoom-in/]
 
 이들이 제시한 3가지 질문에 대해서 정보이론, 정보기하학, 인과추론의 관점에서 답하는 것이 개인적인 관심사다.
 
-# Abstrct
+# Abstract
 
 Does it make sense to treat individual neurons and the connections between them as a serious object of study? This essay proposes three claims which, if true, might justify serious inquiry into them: the existence of meaningful features, the existence of meaningful circuits between features, and the universality of those features and circuits.
 

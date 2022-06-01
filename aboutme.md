@@ -1,7 +1,7 @@
 ---
 layout: page
 title: About me
-subtitle: 
+subtitle: 안녕하세요. 박용현입니다.
 ---
 
 # 관심사
