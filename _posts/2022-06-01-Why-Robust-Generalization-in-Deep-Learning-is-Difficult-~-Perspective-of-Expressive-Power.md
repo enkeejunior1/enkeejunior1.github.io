@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Why Robust Generalization in Deep Learning is Difficult - Perspective of Expressive Power
+title: Why Robust Generalization in Deep Learning is Difficult ~ Perspective of Expressive Power
 subtitle: Each post also has a subtitle
 # gh-repo: daattali/beautiful-jekyll
 # gh-badge: [star, fork, follow]
