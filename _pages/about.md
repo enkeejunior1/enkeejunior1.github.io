@@ -22,12 +22,12 @@ announcements:
   limit: 5 # leave blank to include all the news in the `_news` folder
 
 latest_posts:
-  enabled: true
+  enabled: false 
   scrollable: true # adds a vertical scroll bar if there are more than 3 new posts items
   limit: 3 # leave blank to include all the blog posts
 ---
 
-Research: My goal is to develop and interpret machine intelligence that can understand, generate, and reason about complex high-dimensional data across multiple modalities. I am particularly interested in developing robust methods for learning fundamental patterns and rules from data, such as physical laws, through improved representation learning algorithms.
+My goal is to develop and interpret machine intelligence that can understand, generate, and reason about complex high-dimensional data across multiple modalities. I am particularly interested in developing robust methods for learning fundamental patterns and rules from data, such as physical laws, through improved representation learning algorithms.
 
 <!-- Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com). You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.
 
