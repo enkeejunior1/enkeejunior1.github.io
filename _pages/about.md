@@ -27,7 +27,7 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-My goal is to develop and interpret machine intelligence that can understand, generate, and reason about complex high-dimensional data across multiple modalities. I am particularly interested in developing robust methods for learning fundamental patterns and rules from data, such as physical laws, through improved representation learning algorithms.
+My goal is to develop and interpret **machine intelligence** capable of understanding, reasoning, and interacting with the world. I am particularly interested in designing robust representation learning algorithms that can extract fundamental structures and governing principles from data, such as physical laws.
 
 <!-- Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com). You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.
 
