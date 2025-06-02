@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: <a href='#'>Affiliations</a>. Address. Contacts. Motto. Etc.
+subtitle: <a href='#'>Incoming Ph.D@UPenn-CIS</a>. enkeejunior1@snu.ac.kr 
 
 profile:
   align: right
