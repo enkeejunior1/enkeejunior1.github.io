@@ -1,9 +1,15 @@
-"AJP":
-  url: https://aapt.scitation.org/journal/ajp
+"ICLR":
+  url: https://openreview.net/
   color: "#00369f"
 
-"PhysRev":
-  url: https://journals.aps.org/
+"NeurIPS": 
+  url: https://proceedings.neurips.cc/
+  color: "#00369f"
 
-"Vision":
-  color: "#009f36"
+"arXiv":
+  url: https://arxiv.org/
+  color: "#b31b1b"
+
+"XAI workshop @ NeurIPS":
+  url: https://openreview.net/
+  color: "#b31b1b"
