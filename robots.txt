@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://enkeejunior1.github.io/blog/sitemap.xml
