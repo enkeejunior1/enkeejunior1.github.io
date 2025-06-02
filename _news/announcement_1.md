@@ -5,4 +5,4 @@ inline: true
 related_posts: false
 ---
 
-I will be joining UPenn CIS as a Ph.D. student starting Fall 2025, advised by Prof. Jiatao Gu.
+I will be joining UPenn CIS as a Ph.D. student starting Fall 2025, advised by Prof. [Jiatao Gu](https://jiataogu.me/).
