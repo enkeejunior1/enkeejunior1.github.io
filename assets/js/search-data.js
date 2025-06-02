@@ -62,11 +62,11 @@ ninja.data = [{
             window.location.href = "/blog/2021/distill/";
           
         },
-      },{id: "news-our-paper-jump-your-steps-optimizing-sampling-schedule-of-discrete-diffusion-models-has-been-accepted-at-iclr-2025-mentor-chieh-hsin-jesse-lai",
-          title: 'Our paper “Jump Your Steps: Optimizing Sampling Schedule of Discrete Diffusion Models” has...',
-          description: "",
-          section: "News",},{id: "news-i-will-be-joining-upenn-cis-as-a-ph-d-student-starting-fall-2025-advised-by-prof-jiatao-gu",
+      },{id: "news-i-will-be-joining-upenn-cis-as-a-ph-d-student-starting-fall-2025-advised-by-prof-jiatao-gu",
           title: 'I will be joining UPenn CIS as a Ph.D. student starting Fall 2025,...',
+          description: "",
+          section: "News",},{id: "news-our-paper-jump-your-steps-optimizing-sampling-schedule-of-discrete-diffusion-models-has-been-accepted-at-iclr-2025-mentor-chieh-hsin-jesse-lai",
+          title: 'Our paper “Jump Your Steps: Optimizing Sampling Schedule of Discrete Diffusion Models” has...',
           description: "",
           section: "News",},{
         id: 'social-email',
