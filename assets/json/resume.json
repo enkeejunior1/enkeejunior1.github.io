@@ -140,25 +140,13 @@
       "name": "Machine Learning & Generative Models",
       "level": "Advanced",
       "icon": "",
-      "keywords": [
-        "Diffusion Models",
-        "Text-to-Image Models",
-        "Safe Generation",
-        "Unlearning",
-        "Bayesian Modeling"
-      ]
+      "keywords": ["Diffusion Models", "Text-to-Image Models", "Safe Generation", "Unlearning", "Bayesian Modeling"]
     },
     {
       "name": "Programming",
       "level": "Advanced",
       "icon": "",
-      "keywords": [
-        "Python",
-        "PyTorch",
-        "Diffusers",
-        "Transformers",
-        "R"
-      ]
+      "keywords": ["Python", "PyTorch", "Diffusers", "Transformers", "R"]
     }
   ],
   "languages": [
@@ -177,11 +165,7 @@
     {
       "name": "Generative AI",
       "icon": "",
-      "keywords": [
-        "Diffusion Models",
-        "Safe AI",
-        "Explainable AI"
-      ]
+      "keywords": ["Diffusion Models", "Safe AI", "Explainable AI"]
     }
   ],
   "references": [
