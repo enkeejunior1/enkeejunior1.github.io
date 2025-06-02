@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://enkeejunior1.github.io/blog/sitemap.xml
+Sitemap: https://enkeejunior1.github.io/sitemap.xml
