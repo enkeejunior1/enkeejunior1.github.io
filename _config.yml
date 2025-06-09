@@ -7,7 +7,7 @@ first_name: Yong-Hyun
 middle_name:
 last_name: Park
 contact_note: >
-  email: enkeejunior1@snu.ac.kr
+  email: park19@seas.upenn.edu
 description: > # the ">" symbol means to ignore newlines until "footer_text:" # TODO: what is this?
   A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
 footer_text: >

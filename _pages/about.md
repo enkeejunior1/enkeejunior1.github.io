@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: <a href='#'>Incoming Ph.D@UPenn-CIS</a>. enkeejunior1@snu.ac.kr 
+subtitle: <a href='#'>Incoming Ph.D@UPenn-CIS</a>. park19@seas.upenn.edu 
 
 profile:
   align: right
