@@ -27,7 +27,15 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-My goal is to develop and interpret **machine intelligence** capable of understanding, reasoning, and interacting with the world. I am particularly interested in designing robust representation learning algorithms that can extract fundamental structures and governing principles from data, such as physical laws.
+I'm a researcher who learns by understanding mathematically, mechanistically, from first principles.
+
+So far, all my work has been about understanding: how how diffusion models work geometrically, how concepts emerge in generative models. Now I want to move from understanding to building. In the near term, I'm working on improving how we use generative models, making them more capable, controllable, and efficient. 
+
+In long run, more ambitiously, I'm exploring a fundamental shift in how these models learn. Current generative models rely on imitation (behavioral cloning), like memorizing chess games without understanding what makes a move good. But I believe goal-conditioned behavior is what makes human intelligence powerful: the ability to reason about objectives and plan toward them over long horizons. Today's LLMs lack this. They excel at local predictions but struggle with sustained, goal-directed reasoning. I'm exploring how to shift toward learning what constitutes progress: moving from imitating next steps to understanding how actions lead to objectives.
+
+These are big questions that can't be solved alone, and I'm excited to explore them alongside other researchers—the conversations and collaborations are what make this work meaningful.
+
+<!-- My goal is to develop and interpret **machine intelligence** capable of understanding, reasoning, and interacting with the world. I am particularly interested in designing robust representation learning algorithms that can extract fundamental structures and governing principles from data, such as physical laws. -->
 
 <!-- Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com). You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.
 
