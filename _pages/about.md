@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: <a href='#'>Incoming Ph.D@UPenn-CIS</a>. park19@seas.upenn.edu 
+subtitle: <a href='#'>1st year Ph.D@UPenn-CIS</a>. park19@seas.upenn.edu 
 
 profile:
   align: right
@@ -29,9 +29,9 @@ latest_posts:
 
 I'm a researcher who learns by understanding mathematically, mechanistically, from first principles.
 
-So far, all my work has been about understanding: how how diffusion models work geometrically, how concepts emerge in generative models. Now I want to move from understanding to building. In the near term, I'm working on improving how we use generative models, making them more capable, controllable, and efficient. 
+Before PhD, all my work has been about understanding: how diffusion models work geometrically, how concepts emerge in generative models. Now I want to move from understanding to building. In the near term, I'm working on improving how we use generative models, making them more capable, controllable, and efficient. 
 
-In long run, more ambitiously, I'm exploring a fundamental shift in how these models learn. Current generative models rely on imitation (behavioral cloning), like memorizing chess games without understanding what makes a move good. But I believe goal-conditioned behavior is what makes human intelligence powerful: the ability to reason about objectives and plan toward them over long horizons. Today's LLMs lack this. They excel at local predictions but struggle with sustained, goal-directed reasoning. I'm exploring how to shift toward learning what constitutes progress: moving from imitating next steps to understanding how actions lead to objectives.
+In long run, more ambitiously, I'm exploring a fundamental shift in how these models learn. Current generative models rely on imitation (behavioral cloning), like memorizing chess games without understanding what makes a move good. But I believe goal-conditioned behavior is what makes human intelligence powerful: the ability to reason about objectives and plan toward them over long horizons. Today's agent system, e.g., LLMs and VLAs, lack this. They excel at local predictions but struggle with sustained, goal-directed reasoning. I'm exploring how to shift toward learning what constitutes progress: moving from imitating next steps to understanding how actions lead to objectives.
 
 These are big questions that can't be solved alone, and I'm excited to explore them alongside other researchers—the conversations and collaborations are what make this work meaningful.
 
