@@ -61,6 +61,9 @@ ninja.data = [{
           section: "News",},{id: "news-our-paper-jump-your-steps-optimizing-sampling-schedule-of-discrete-diffusion-models-has-been-accepted-at-iclr-2025-mentor-chieh-hsin-jesse-lai",
           title: 'Our paper “Jump Your Steps: Optimizing Sampling Schedule of Discrete Diffusion Models” has...',
           description: "",
+          section: "News",},{id: "news-our-paper-concept-trak-understanding-how-diffusion-models-learn-concepts-through-concept-attribution-has-been-accepted-at-iclr-2026-mentor-chieh-hsin-jesse-lai",
+          title: 'Our paper “Concept-TRAK: Understanding how diffusion models learn concepts through concept attribution” has...',
+          description: "",
           section: "News",},{
         id: 'social-email',
         title: 'email',
