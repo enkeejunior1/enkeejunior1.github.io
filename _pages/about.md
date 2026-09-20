@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: <a href='#'>1st year Ph.D@UPenn-CIS</a>. park19@seas.upenn.edu 
+subtitle: 2nd-year Ph.D. student at <a href='https://www.cis.upenn.edu/'>UPenn CIS</a> · <a href='mailto:park19@seas.upenn.edu'>park19@seas.upenn.edu</a>
 
 profile:
   align: right
@@ -27,18 +27,10 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-I'm a researcher who learns by understanding mathematically, mechanistically, from first principles.
+I am Yong-Hyun Park (call me Yong), a second-year Ph.D. student in CIS at UPenn, fortunate to be advised by [Jiatao Gu](https://jiataogu.me/). I am currently a part-time research intern at Roblox. Previously, I was a research intern at Sony AI and NAVER AI. I earned my B.S. and M.S. from SNU (major: physics education) and was fortunate to be advised by [Junghyo Jo](https://scholar.google.com/citations?user=h1QXLx0AAAAJ&hl=en).
 
-Before PhD, all my work has been about understanding: how diffusion models work geometrically, how concepts emerge in generative models. Now I want to move from understanding to building. In the near term, I'm working on improving how we use generative models, making them more capable, controllable, and efficient. 
+### Research interests
 
-In long run, more ambitiously, I'm exploring a fundamental shift in how these models learn. Current generative models rely on imitation (behavioral cloning), like memorizing chess games without understanding what makes a move good. But I believe goal-conditioned behavior is what makes human intelligence powerful: the ability to reason about objectives and plan toward them over long horizons. Today's agent system, e.g., LLMs and VLAs, lack this. They excel at local predictions but struggle with sustained, goal-directed reasoning. I'm exploring how to shift toward learning what constitutes progress: moving from imitating next steps to understanding how actions lead to objectives.
+I work on visual world models that can understand world dynamics and continually adapt based on test-time observations.
 
-These are big questions that can't be solved alone, and I'm excited to explore them alongside other researchers—the conversations and collaborations are what make this work meaningful.
-
-<!-- My goal is to develop and interpret **machine intelligence** capable of understanding, reasoning, and interacting with the world. I am particularly interested in designing robust representation learning algorithms that can extract fundamental structures and governing principles from data, such as physical laws. -->
-
-<!-- Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com). You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.
-
-Put your address / P.O. box / other info right below your picture. You can also disable any of these elements by editing `profile` property of the YAML header of your `_pages/about.md`. Edit `_bibliography/papers.bib` and Jekyll will render your [publications page](/al-folio/publications/) automatically.
-
-Link to your social media connections, too. This theme is set up to use [Font Awesome icons](https://fontawesome.com/) and [Academicons](https://jpswalsh.github.io/academicons/), like the ones below. Add your Facebook, Twitter, LinkedIn, Google Scholar, or just disable all of them. -->
+Previously, I studied diffusion models from several perspectives: [latent space](https://proceedings.neurips.cc/paper_files/paper/2023/file/4bfcebedf7a2967c410b64670f27f904-Paper-Conference.pdf), [parameter space](https://openreview.net/forum?id=UdXE5V2d0O), [data space](https://openreview.net/forum?id=TRmIcgMe8I), and [theory](https://openreview.net/forum?id=pD6TiCpyDR).
