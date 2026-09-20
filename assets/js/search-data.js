@@ -64,6 +64,9 @@ ninja.data = [{
           section: "News",},{id: "news-our-paper-concept-trak-understanding-how-diffusion-models-learn-concepts-through-concept-attribution-has-been-accepted-at-iclr-2026-mentor-chieh-hsin-jesse-lai",
           title: 'Our paper “Concept-TRAK: Understanding how diffusion models learn concepts through concept attribution” has...',
           description: "",
+          section: "News",},{id: "news-i-started-a-part-time-research-internship-at-roblox-mentored-by-guande-he",
+          title: 'I started a part-time research internship at Roblox, mentored by Guande He.',
+          description: "",
           section: "News",},{
         id: 'social-email',
         title: 'email',
