@@ -27,7 +27,9 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-I am Yong-Hyun Park (call me Yong), a second-year Ph.D. student in CIS at UPenn, fortunate to be advised by [Jiatao Gu](https://jiataogu.me/). I am currently a part-time research intern at Roblox. Previously, I was a research intern at Sony AI and NAVER AI. I earned my B.S. and M.S. from SNU (major: physics education) and was fortunate to be advised by [Junghyo Jo](https://scholar.google.com/citations?user=h1QXLx0AAAAJ&hl=en).
+I am Yong-Hyun Park (call me Yong), a second-year Ph.D. student in CIS at UPenn, fortunate to be advised by [Jiatao Gu](https://jiataogu.me/). I am currently a part-time research intern at Roblox.
+
+Previously, I was a research intern at Sony AI and NAVER AI. I earned my B.S. and M.S. in Physics Education from SNU, where I was fortunate to be advised by [Junghyo Jo](https://scholar.google.com/citations?user=h1QXLx0AAAAJ&hl=en).
 
 ### Research interests
 
