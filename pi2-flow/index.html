@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="π²-Flow: Analyzing and Improving π-Flow. Few-step video distillation that keeps teacher queries where the teacher is reliable.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="π²-Flow: Analyzing and Improving π-Flow">
+  <meta property="og:image" content="assets/motion/method-steps-poster.jpg">
+  <title>π²-Flow: Analyzing and Improving π-Flow</title>
+  <link rel="stylesheet" href="project.css">
+  <link rel="stylesheet" href="abstract.css">
+  <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="assets/motion/stepper.css">
+  <link rel="stylesheet" href="assets/motion/barstory.css">
+  <script src="project.js" defer></script>
+  <script src="assets/motion/stepper.js" defer></script>
+  <script src="assets/motion/barstory.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+
+<nav class="top-nav" aria-label="Page navigation">
+  <div class="nav-inner">
+    <a class="nav-name" href="#top">π²-Flow</a>
+    <div class="nav-links">
+      <a href="#problem">Problem</a>
+      <a href="#method">Method</a>
+      <a href="#results">Results</a>
+      <a href="#diversity">Diversity</a>
+      <a href="#ablations">Ablations</a>
+    </div>
+  </div>
+</nav>
+
+<header class="masthead" id="top">
+  <h1>π²-Flow: Analyzing and Improving π-Flow</h1>
+  <p class="affiliations">Anonymous authors &middot; under review</p>
+  <div class="resource-links">
+    <span class="resource resource-soon" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>
+      <span>Paper <small>coming soon</small></span>
+    </span>
+    <span class="resource resource-soon" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6-6 6 6 6M16 6l6 6-6 6M14 3l-4 18"/></svg>
+      <span>Code <small>coming soon</small></span>
+    </span>
+    <a class="resource primary" href="#method">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span>Method walkthrough</span>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="video-showcase" data-video-showcase>
+      <div class="v-controls">
+        <div class="v-tabs" role="tablist" aria-label="Prompts">
+          <button type="button" role="tab" aria-selected="true" data-prefix="p355" data-prompt="A person is making snowman">Snowman</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="p379" data-prompt="an airplane landing smoothly on a runway">Airplane</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="p446" data-prompt="a horse">Horse</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="p444" data-prompt="a cat">Cat</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="p793" data-prompt="Fireworks.">Fireworks</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="p279" data-prompt="A person is laughing">Laughing</button>
+        </div>
+        <button type="button" class="v-sync-btn" data-sync-restart>↻ Restart in sync</button>
+      </div>
+      <div class="v-matrix">
+        <div class="v-colhead"></div>
+        <div class="v-colhead">rCM<sup>*</sup> <small>DMD</small></div>
+        <div class="v-colhead">AnyFlow<sup>*</sup> <small>DMD</small></div>
+        <div class="v-colhead is-ours">π²-Flow (ours) <small>flow map</small></div>
+        <div class="v-rowhead">4 NFE</div>
+        <video src="assets/videos/p355_rcm_nfe4.mp4" data-model="rcm_nfe4" autoplay loop muted playsinline preload="metadata"></video>
+        <video src="assets/videos/p355_anyflow_nfe4.mp4" data-model="anyflow_nfe4" autoplay loop muted playsinline preload="metadata"></video>
+        <video class="is-ours" src="assets/videos/p355_ours_nfe4.mp4" data-model="ours_nfe4" autoplay loop muted playsinline preload="metadata"></video>
+        <div class="v-rowhead">2 NFE</div>
+        <video src="assets/videos/p355_rcm_nfe2.mp4" data-model="rcm_nfe2" autoplay loop muted playsinline preload="metadata"></video>
+        <video src="assets/videos/p355_anyflow_nfe2.mp4" data-model="anyflow_nfe2" autoplay loop muted playsinline preload="metadata"></video>
+        <video class="is-ours" src="assets/videos/p355_ours_nfe2.mp4" data-model="ours_nfe2" autoplay loop muted playsinline preload="metadata"></video>
+      </div>
+      <p class="v-prompt-bar" data-prompt-text><strong>Prompt:</strong> &ldquo;A person is making snowman&rdquo;</p>
+      <p class="v-note">Wan2.1-1.3B, 81 frames at 832&times;480, seed 0, from the VBench evaluation of the results table (the models receive the extended prompts). The seed indexes each code base's own noise, so different methods share the prompt and seed but not the noise; our 4- and 2-NFE videos share the noise. <sup>*</sup>Official checkpoints.</p>
+    </div>
+
+    <section class="project-abstract" aria-labelledby="abstract-heading">
+      <h2 id="abstract-heading">Abstract</h2>
+      <p>Video diffusion models generate high-quality videos, but their iterative sampling is expensive. While distribution matching distillation (DMD) accelerates generation to a few steps, it reduces sample diversity. Flow-map distillation methods such as π-Flow preserve diversity by learning the teacher's trajectories, yet π-Flow still lags behind DMD in quality, especially at 2 NFE. We show that this gap arises because π-Flow learns long jumps poorly due to <em>state-dependent teacher reliability</em>: π-Flow queries the teacher at student-generated states, but the teacher is reliable only near its own trajectories, and velocity errors integrated over a long jump carry queries out of distribution where teacher supervision becomes unreliable. Building on this analysis, we propose π²-Flow (progressive π-Flow), which keeps queries where the teacher is reliable by increasing jump length progressively. In Stage&nbsp;1 (4 NFE), π²-Flow pairs a jump-length curriculum with Δσ action weighting and guided initialization to learn short jumps reliably with on-policy π-Flow. In Stage&nbsp;2 (2 NFE), it distills the trajectories of the frozen 4-NFE policy over a small, fixed set of trajectories with full-batch updates, avoiding teacher queries at student states altogether. On Wan2.1-1.3B and 14B, π²-Flow closes the quality gap with DMD-based methods across 4 and 2 NFE&mdash;achieving the highest VBench scores on 1.3B at both 4 NFE (85.22) and 2 NFE (84.56)&mdash;while substantially outperforming prior π-Flow distillation and preserving higher sample diversity than DMD.</p>
+    </section>
+  </section>
+
+  <section class="content-section" id="problem" data-section="Problem">
+    <h2>π-Flow trusts the teacher at states the teacher has never seen</h2>
+    <p>π-Flow distills a teacher into a few-step student without matching output distributions: one student evaluation at a source state <i>x<sub>s</sub></i> produces a velocity policy <i>π</i>, the student rolls this policy out to an intermediate state <i>x̂<sub>t</sub></i>, and it is trained to match the teacher's velocity <i>v<sub>ϕ</sub></i>(<i>x̂<sub>t</sub></i>, <i>t</i>) there. This is on-policy distillation, and it assumes the expert gives good supervision at any state the student visits.</p>
+    <p>A diffusion teacher does not satisfy this assumption. It is reliable near its own trajectories and can be unreliable far from them. Because <i>x̂<sub>t</sub></i> comes from integrating the student's policy, a velocity error moves <i>x̂<sub>t</sub></i> in proportion to the jump length. We call this <strong>state-dependent teacher reliability</strong>.</p>
+
+    <figure class="mstep" data-src="assets/motion/reliability-steps.mp4" data-poster="assets/motion/reliability-steps-poster.jpg" aria-label="State-dependent teacher reliability, step by step.">
+      <div class="mstep-words">
+        <div class="mstep-beat" data-from="0" data-to="6">
+          <p class="mstep-title"><span class="mstep-n">1</span>The teacher's denoising trajectories</p>
+          <p class="mstep-line">The guided teacher <i>v<sub>ϕ</sub></i> integrates from noise (<i>s</i> = 1) to a clean video (<i>t</i> = 0) in 128 small steps. Near these trajectories, its velocity can be trusted.</p>
+        </div>
+        <div class="mstep-beat" data-from="6" data-to="13">
+          <p class="mstep-title"><span class="mstep-n">2</span>π-Flow queries the teacher at student states</p>
+          <p class="mstep-line">One student evaluation gives a policy <i>π</i> = <i>G<sub>θ</sub></i>(<i>x<sub>s</sub></i>, <i>s</i>). π-Flow rolls it out to <i>x̂<sub>t</sub></i> and matches <i>π</i>(<i>x̂<sub>t</sub></i>, <i>t</i>) to the teacher velocity <i>v<sub>ϕ</sub></i>(<i>x̂<sub>t</sub></i>, <i>t</i>) at that state.</p>
+        </div>
+        <div class="mstep-beat" data-from="13" data-to="20">
+          <p class="mstep-title"><span class="mstep-n">3</span>Short jumps stay in distribution</p>
+          <p class="mstep-line">After a short 16/128 jump, <i>x̂<sub>t</sub></i> stays near the teacher's trajectories. Continuing generation from it with the teacher gives a video close to the reference.</p>
+        </div>
+        <div class="mstep-beat" data-from="20" data-to="29">
+          <p class="mstep-title"><span class="mstep-n">4</span>Long jumps leave it</p>
+          <p class="mstep-line">From pure noise, longer jumps carry <i>x̂<sub>t</sub></i> out of distribution and the teacher's continuation degrades. At 64/128, the first step of 2-NFE generation, CLIP score drops by 0.12 and imaging quality by 0.34.</p>
+        </div>
+      </div>
+    </figure>
+    <p><em>Schematic. Video frames are the middle frame of the teacher's continuation for one prompt; the Δ values are paired differences to the continuation from the 128-step reference state, averaged over 64 prompts (Wan2.1-1.3B, initialized student). Step with the arrows or the keyboard, or scrub the bar.</em></p>
+
+    <h3 id="measured">Measuring it: continue generation from the student's query state</h3>
+    <p>To test whether the teacher is still reliable at the student's queries, we let the initialized student take one jump from pure noise, of length 16/128 to 64/128 of the grid, and have the guided teacher generate the rest of the video from <i>x̂<sub>t</sub></i>. We compare against the teacher's continuation from the reference state on its own 128-step trajectory. A 16/128 jump costs little; a 64/128 jump, the first step of 2-NFE generation, causes severe degradation. Matching <i>v<sub>ϕ</sub></i>(<i>x̂<sub>t</sub></i>, <i>t</i>) there supervises the student with an unreliable target.</p>
+    <figure class="paper-figure narrow"><a class="figure-link" href="assets/figures/sec41_continuation.png" data-lightbox><img loading="lazy" decoding="async" src="assets/figures/sec41_continuation.png" alt="Paired change in CLIP score and imaging quality of the teacher continuation as the student's first jump grows from 16/128 to 64/128, with example frames."></a></figure>
+    <p><em>(a) Paired quality change relative to the teacher continuation from the 128-step reference state over 64 prompts (mean and 95% bootstrap CI). (b) Middle frame of the continuations as the jump grows.</em></p>
+    <p>This gives a simple design principle: <strong>keep the student's queries near the teacher's trajectories.</strong> At 4 NFE we can do this by lengthening jumps gradually. At 2 NFE a single 64/128 jump from noise is too long, so we avoid querying the teacher at student states altogether.</p>
+  </section>
+
+  <section class="content-section" id="method" data-section="Method">
+    <h2>π²-Flow: lengthen jumps progressively</h2>
+    <figure class="mstep" data-src="assets/motion/method-steps.mp4" data-poster="assets/motion/method-steps-poster.jpg" aria-label="The two stages of π²-Flow, step by step.">
+      <div class="mstep-words">
+        <div class="mstep-beat" data-from="0" data-to="5">
+          <p class="mstep-title"><span class="mstep-n">1</span>Split the horizon into four segments</p>
+          <p class="mstep-line">A 4-NFE policy has sources at <i>σ</i><sub>0</sub>, <i>σ</i><sub><i>K</i>/4</sub>, <i>σ</i><sub><i>K</i>/2</sub> and <i>σ</i><sub>3<i>K</i>/4</sub>, so each jump spans a quarter of the 128-interval grid.</p>
+        </div>
+        <div class="mstep-beat" data-from="5" data-to="11.5">
+          <p class="mstep-title"><span class="mstep-n">2</span>Stage 1: a jump-length curriculum</p>
+          <p class="mstep-line">Within each segment, query levels open from short to long jumps during training. Long jumps enter only after the policy has learned short ones, so its queries stay where the teacher is reliable.</p>
+        </div>
+        <div class="mstep-beat" data-from="11.5" data-to="17.5">
+          <p class="mstep-title"><span class="mstep-n">3</span>The 4-NFE policy</p>
+          <p class="mstep-line">Chaining the four learned jumps gives the 4-NFE policy <i>π</i><sup>4NFE</sup>. Every state it visits is reached by jumps of at most a quarter of the grid.</p>
+        </div>
+        <div class="mstep-beat" data-from="17.5" data-to="24.5">
+          <p class="mstep-title"><span class="mstep-n">4</span>Why not train 2 NFE directly?</p>
+          <p class="mstep-line">A 2-NFE step spans half the grid. From noise, that jump leaves the reliable region, and the teacher's continuation degrades (right). Training 2-NFE π-Flow directly reaches only 82.40 to 83.17 VBench.</p>
+        </div>
+        <div class="mstep-beat" data-from="24.5" data-to="30">
+          <p class="mstep-title"><span class="mstep-n">5</span>Stage 2: freeze the 4-NFE policy</p>
+          <p class="mstep-line">We roll out the frozen <i>π</i><sup>4NFE</sup> once on a fixed set of 64 prompt&ndash;noise pairs and record its states and velocities on every grid interval.</p>
+        </div>
+        <div class="mstep-beat" data-from="30" data-to="37">
+          <p class="mstep-title"><span class="mstep-n">6</span>Stage 2: match its trajectories in 2 NFE</p>
+          <p class="mstep-line">The 2-NFE student, evaluated at the noise and at the expert's midpoint state, matches the expert's actions on every remaining interval. It never takes a half-grid jump or queries the teacher during training.</p>
+        </div>
+      </div>
+    </figure>
+    <p><em>Schematic. The 4- and 2-NFE frames are from our models on the airplane prompt; the frame in step 4 is the teacher's continuation after a 64/128 jump on another prompt, as in the section above.</em></p>
+
+    <h3 id="stage1">Stage 1 (4 NFE): on-policy π-Flow, with short jumps first</h3>
+    <p>Stage 1 keeps on-policy π-Flow but controls where it queries the teacher. Three components work together:</p>
+    <ul>
+      <li><strong>Jump-length curriculum.</strong> Within each segment, query levels are split into bins of equal width in the grid index and opened from the source outward. Opened bins stay active, so short jumps are trained throughout.</li>
+      <li><strong>Δσ action weighting.</strong> We supervise the displacement over a grid interval rather than the raw velocity, which scales the residual by the interval width Δσ. Under the shifted schedule, intervals widen toward the clean end, so the long jumps that the curriculum visits less often get commensurate weight. The curriculum and the weighting help only together.</li>
+      <li><strong>Guided initialization.</strong> The teacher is strongly guided (<i>w</i> = 9) while the student starts from the unguided base model. Distilling the guided teacher first (KD, 256 updates) lets Stage 1 start from a student that already matches the guided velocity field.</li>
+    </ul>
+
+    <h3 id="stage2">Stage 2 (2 NFE): distill the 4-NFE trajectories</h3>
+    <p>Stage 2 follows progressive self-distillation: two quarter-grid jumps of the frozen <i>π</i><sup>4NFE</sup> are distilled into each half-grid jump of the student, so every training state is reached by jumps of at most a quarter of the grid. Because the policy is a closed-form function of its grid velocities, the student can match all remaining intervals without rolling out a half-grid jump or querying <i>v<sub>ϕ</sub></i>.</p>
+    <figure class="paper-figure"><a class="figure-link" href="assets/figures/stage2_dagger.png" data-lightbox><img loading="lazy" decoding="async" src="assets/figures/stage2_dagger.png" alt="Overview of π²-Flow: Stage 1 learns four 4-NFE policies on-policy with a jump-length curriculum; Stage 2 matches the frozen 4-NFE trajectories with a 2-NFE student."></a></figure>
+    <p><em>Overview of π²-Flow. (a) Stage 1 rolls out four policies on-policy and expands query intervals from short to long jumps. (b) Stage 2 rolls out the frozen 4-NFE expert from noise; the 2-NFE student evaluates two policies at the expert's anchor states and matches the expert's actions on every grid interval.</em></p>
+    <p>One detail matters a lot here. Sampling fresh prompt&ndash;noise pairs at every update makes the Stage 2 loss plateau early. Precomputing the expert trajectories for a <strong>fixed set of 64 pairs</strong> and taking full-batch updates on them lets the loss keep falling, and raises 2-NFE VBench from 83.51 to 84.56 on unseen evaluation prompts, with a moderate cost in diversity.</p>
+    <figure class="paper-figure narrow"><a class="figure-link" href="assets/figures/stage2_loss.png" data-lightbox><img loading="lazy" decoding="async" src="assets/figures/stage2_loss.png" alt="Stage 2 training loss: fresh pairs plateau early while the fixed 64-pair set keeps decreasing."></a></figure>
+    <p><em>Stage 2 training loss on Wan2.1-1.3B. Both runs use the same objective and optimizer. The fixed-set curve is the loss on its 64 training pairs.</em></p>
+  </section>
+
+  <section class="content-section" id="results" data-section="Results">
+    <h2>Results on Wan2.1-1.3B and 14B</h2>
+    <p>On Wan2.1-1.3B, π²-Flow has the highest VBench score at both 4 NFE (85.22) and 2 NFE (84.56), above our reproduction of the π-Flow-based PDD by about one point at each. On Wan2.1-14B it is competitive with the DMD-based methods but not ahead: close to rCM and below AnyFlow at 4 NFE, and below both at 2 NFE, while having the highest Quality score and dynamic degree in both settings.</p>
+
+    <figure class="barstory" data-ylabel="VBench Total ↑" data-ymin="82" data-ymax="86" data-ystep="1">
+      <div class="barstory-series" data-name="PDD† (π-Flow based)" data-style="base" data-phase="Prior π-Flow distillation (PDD†)"></div>
+      <div class="barstory-series" data-name="π²-Flow (ours)" data-style="corr" data-from="0" data-delta="points" data-phase="+ π²-Flow"></div>
+      <div class="barstory-series" data-name="AnyFlow* (DMD)" data-style="cfg" data-phase="Best DMD-based baseline (AnyFlow*), for reference"></div>
+      <div class="barstory-group" data-name="1.3B · 4 NFE" data-values="84.08,85.22,84.89"></div>
+      <div class="barstory-group" data-name="1.3B · 2 NFE" data-values="83.54,84.56,83.98"></div>
+      <div class="barstory-group" data-name="14B · 4 NFE" data-values="84.32,84.84,85.30"></div>
+      <div class="barstory-group" data-name="14B · 2 NFE" data-values="83.59,84.39,85.01"></div>
+    </figure>
+    <p><em>VBench Total, five-seed means on the extended prompts. †Our reproduction of PDD with the official recipe, best checkpoint. *Our evaluation of the official checkpoint. The y-axis starts at 82.</em></p>
+
+    <div class="table-scroll results-table" tabindex="0" aria-label="Comparison on Wan2.1 at 4 and 2 NFE">
+      <table>
+        <thead>
+          <tr><th rowspan="2">Model</th><th rowspan="2">Method</th><th rowspan="2">NFE</th><th colspan="4" class="grp">VBench ↑</th><th colspan="2" class="grp">V-JEPA 2 ↑</th><th colspan="2" class="grp">VideoMAE V2 ↑</th></tr>
+          <tr><th>Total</th><th>Quality</th><th>Semantic</th><th>Dynamic</th><th>Cos</th><th>L2</th><th>Cos</th><th>L2</th></tr>
+        </thead>
+        <tbody>
+<tr><td class="model">Wan2.1-1.3B</td><td class="m">UniPC (Teacher)</td><td>50×2</td><td class="teacher">81.87</td><td class="teacher">82.63</td><td class="teacher">78.84</td><td class="teacher">66.2</td><td class="teacher">0.0997</td><td class="teacher">28.9</td><td class="teacher">0.0217</td><td class="teacher">3.41</td></tr>
+<tr class="block-start"><td class="model"></td><td class="m">rCM<sup>*</sup></td><td>4</td><td class="r3">84.13</td><td class="r4">85.00</td><td class="r2">80.65</td><td class="r3">81.4</td><td class="r3">0.0634</td><td class="r3">22.7</td><td class="r3">0.0126</td><td class="r3">2.60</td></tr>
+<tr><td class="model"></td><td class="m">AnyFlow<sup>*</sup></td><td>4</td><td class="r2">84.89</td><td class="r2">85.47</td><td class="r1">82.57</td><td class="r4">69.0</td><td class="r4">0.0537</td><td class="r4">21.2</td><td class="r4">0.0102</td><td class="r4">2.35</td></tr>
+<tr><td class="model"></td><td class="m">PDD<sup>†</sup></td><td>4</td><td class="r4">84.08</td><td class="r3">85.22</td><td class="r3">79.49</td><td class="r1">87.8</td><td class="r1">0.1068</td><td class="r1">29.5</td><td class="r1">0.0252</td><td class="r1">3.72</td></tr>
+<tr><td class="model"></td><td class="m is-ours">π²-Flow <span class="ours-tag">(ours)</span></td><td>4</td><td class="r1">85.22</td><td class="r1">86.74</td><td class="r4">79.17</td><td class="r2">85.8</td><td class="r2">0.0772</td><td class="r2">25.3</td><td class="r2">0.0134</td><td class="r2">2.72</td></tr>
+<tr class="block-start"><td class="model"></td><td class="m">rCM<sup>*</sup></td><td>2</td><td class="r2">84.10</td><td class="r2">84.85</td><td class="r2">81.13</td><td class="r3">77.2</td><td class="r3">0.0626</td><td class="r3">22.7</td><td class="r2">0.0125</td><td class="r2">2.58</td></tr>
+<tr><td class="model"></td><td class="m">AnyFlow<sup>*</sup></td><td>2</td><td class="r3">83.98</td><td class="r4">84.40</td><td class="r1">82.30</td><td class="r4">61.0</td><td class="r4">0.0522</td><td class="r4">21.1</td><td class="r4">0.0096</td><td class="r4">2.29</td></tr>
+<tr><td class="model"></td><td class="m">PDD<sup>†</sup></td><td>2</td><td class="r4">83.54</td><td class="r3">84.80</td><td class="r4">78.52</td><td class="r1">85.0</td><td class="r1">0.1068</td><td class="r1">29.6</td><td class="r1">0.0258</td><td class="r1">3.76</td></tr>
+<tr><td class="model"></td><td class="m is-ours">π²-Flow <span class="ours-tag">(ours)</span></td><td>2</td><td class="r1">84.56</td><td class="r1">86.02</td><td class="r3">78.72</td><td class="r2">84.0</td><td class="r2">0.0639</td><td class="r2">23.0</td><td class="r3">0.0104</td><td class="r3">2.41</td></tr>
+<tr class="group-start"><td class="model">Wan2.1-14B</td><td class="m">UniPC (Teacher)</td><td>50×2</td><td class="teacher">82.79</td><td class="teacher">83.26</td><td class="teacher">80.88</td><td class="teacher">57.4</td><td class="teacher">0.1023</td><td class="teacher">29.4</td><td class="teacher">0.0242</td><td class="teacher">3.58</td></tr>
+<tr class="block-start"><td class="model"></td><td class="m">rCM<sup>*</sup></td><td>4</td><td class="r2">84.87</td><td class="r3">85.34</td><td class="r2">83.02</td><td class="r3">62.8</td><td class="r4">0.0544</td><td class="r4">21.0</td><td class="r4">0.0122</td><td class="r4">2.48</td></tr>
+<tr><td class="model"></td><td class="m">AnyFlow<sup>*</sup></td><td>4</td><td class="r1">85.30</td><td class="r2">85.89</td><td class="r3">82.97</td><td class="r2">71.6</td><td class="r3">0.0609</td><td class="r3">22.4</td><td class="r3">0.0134</td><td class="r3">2.63</td></tr>
+<tr><td class="model"></td><td class="m">PDD<sup>†</sup></td><td>4</td><td class="r4">84.32</td><td class="r4">84.64</td><td class="r1">83.04</td><td class="r4">58.4</td><td class="r1">0.0957</td><td class="r1">28.2</td><td class="r1">0.0230</td><td class="r1">3.48</td></tr>
+<tr><td class="model"></td><td class="m is-ours">π²-Flow <span class="ours-tag">(ours)</span></td><td>4</td><td class="r3">84.84</td><td class="r1">86.25</td><td class="r4">79.19</td><td class="r1">84.4</td><td class="r2">0.0708</td><td class="r2">24.2</td><td class="r2">0.0143</td><td class="r2">2.78</td></tr>
+<tr class="block-start"><td class="model"></td><td class="m">rCM<sup>*</sup></td><td>2</td><td class="r2">84.67</td><td class="r3">85.13</td><td class="r2">82.85</td><td class="r3">56.6</td><td class="r4">0.0540</td><td class="r4">21.0</td><td class="r2">0.0124</td><td class="r3">2.51</td></tr>
+<tr><td class="model"></td><td class="m">AnyFlow<sup>*</sup></td><td>2</td><td class="r1">85.01</td><td class="r2">85.50</td><td class="r1">83.03</td><td class="r2">64.2</td><td class="r3">0.0590</td><td class="r3">22.2</td><td class="r3">0.0123</td><td class="r2">2.54</td></tr>
+<tr><td class="model"></td><td class="m">PDD<sup>†</sup></td><td>2</td><td class="r4">83.59</td><td class="r4">84.00</td><td class="r3">81.95</td><td class="r4">53.2</td><td class="r1">0.0926</td><td class="r1">27.8</td><td class="r1">0.0221</td><td class="r1">3.40</td></tr>
+<tr><td class="model"></td><td class="m is-ours">π²-Flow <span class="ours-tag">(ours)</span></td><td>2</td><td class="r3">84.39</td><td class="r1">85.54</td><td class="r4">79.76</td><td class="r1">83.0</td><td class="r2">0.0613</td><td class="r2">22.5</td><td class="r4">0.0112</td><td class="r4">2.47</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><em>VBench scores and dynamic degree are five-seed means. The V-JEPA 2 and VideoMAE V2 columns measure diversity as the mean pairwise feature distance among five videos per prompt (higher is more diverse). Within each block, darker blue means a higher rank; the teacher is not ranked.</em></p>
+
+    <figure class="paper-figure"><a class="figure-link" href="assets/figures/qualitative.jpg" data-lightbox><img loading="lazy" decoding="async" src="assets/figures/qualitative.jpg" alt="Qualitative comparison of rCM, AnyFlow and π²-Flow at 4 and 2 NFE, and four seeds per prompt at 4 NFE."></a></figure>
+    <p><em>(a) Four evenly spaced frames from rCM, AnyFlow and π²-Flow at 4 and 2 NFE, same prompt and seed. (b) Middle frames of four seeds per prompt at 4 NFE.</em></p>
+  </section>
+
+  <section class="content-section" id="diversity" data-section="Diversity">
+    <h2>More diverse than DMD</h2>
+    <p>Because π²-Flow follows the teacher's trajectories instead of matching its output distribution, different seeds lead to different videos. At 4 NFE, π²-Flow is more diverse than rCM and AnyFlow on both model sizes under both encoders. PDD, also a π-Flow method, is the most diverse distilled model, at the level of the teacher, and π²-Flow is less diverse than PDD. Stage 2 lowers diversity (V-JEPA 2 cosine distance 0.0772 to 0.0639 on 1.3B), which we attribute to its fixed trajectory set.</p>
+    <div class="video-showcase" data-video-showcase>
+      <div class="v-controls">
+        <div class="v-tabs" role="tablist" aria-label="Diversity prompts">
+          <button type="button" role="tab" aria-selected="true" data-prefix="div444" data-prompt="a cat">Cat</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="div446" data-prompt="a horse">Horse</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="div793" data-prompt="Fireworks.">Fireworks</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="div279" data-prompt="A person is laughing">Laughing</button>
+        </div>
+        <button type="button" class="v-sync-btn" data-sync-restart>↻ Restart in sync</button>
+      </div>
+      <div class="v-matrix seeds">
+        <div class="v-colhead"></div>
+        <div class="v-colhead">seed 0</div><div class="v-colhead">seed 1</div><div class="v-colhead">seed 2</div><div class="v-colhead">seed 3</div>
+        <div class="v-rowhead">rCM<sup>*</sup></div>
+        <video src="assets/videos/div444_rcm_s0.mp4" data-model="rcm_s0" autoplay loop muted playsinline preload="metadata"></video>
+        <video src="assets/videos/div444_rcm_s1.mp4" data-model="rcm_s1" autoplay loop muted playsinline preload="metadata"></video>
+        <video src="assets/videos/div444_rcm_s2.mp4" data-model="rcm_s2" autoplay loop muted playsinline preload="metadata"></video>
+        <video src="assets/videos/div444_rcm_s3.mp4" data-model="rcm_s3" autoplay loop muted playsinline preload="metadata"></video>
+        <div class="v-rowhead">AnyFlow<sup>*</sup></div>
+        <video src="assets/videos/div444_anyflow_s0.mp4" data-model="anyflow_s0" autoplay loop muted playsinline preload="metadata"></video>
+        <video src="assets/videos/div444_anyflow_s1.mp4" data-model="anyflow_s1" autoplay loop muted playsinline preload="metadata"></video>
+        <video src="assets/videos/div444_anyflow_s2.mp4" data-model="anyflow_s2" autoplay loop muted playsinline preload="metadata"></video>
+        <video src="assets/videos/div444_anyflow_s3.mp4" data-model="anyflow_s3" autoplay loop muted playsinline preload="metadata"></video>
+        <div class="v-rowhead is-ours">π²-Flow</div>
+        <video class="is-ours" src="assets/videos/div444_ours_s0.mp4" data-model="ours_s0" autoplay loop muted playsinline preload="metadata"></video>
+        <video class="is-ours" src="assets/videos/div444_ours_s1.mp4" data-model="ours_s1" autoplay loop muted playsinline preload="metadata"></video>
+        <video class="is-ours" src="assets/videos/div444_ours_s2.mp4" data-model="ours_s2" autoplay loop muted playsinline preload="metadata"></video>
+        <video class="is-ours" src="assets/videos/div444_ours_s3.mp4" data-model="ours_s3" autoplay loop muted playsinline preload="metadata"></video>
+      </div>
+      <p class="v-prompt-bar" data-prompt-text><strong>Prompt:</strong> &ldquo;a cat&rdquo;</p>
+      <p class="v-note">Wan2.1-1.3B at 4 NFE, seeds 0&ndash;3. These four prompts are selected, not representative: they were picked by eye among the 130 prompts where our diversity margin over rCM and AnyFlow is largest. Over all prompts, our V-JEPA 2 cosine distance exceeds the mean of rCM and AnyFlow by 0.0186.</p>
+    </div>
+  </section>
+
+  <section class="content-section" id="ablations" data-section="Ablations">
+    <h2>Ablations</h2>
+    <p>All ablations are on Wan2.1-1.3B with VBench Total averaged over five seeds. Stage 1 variants are evaluated at 4 NFE and Stage 2 variants at 2 NFE.</p>
+    <div class="fig-pair equal">
+      <div class="table-scroll" tabindex="0" aria-label="Stage 1 ablation">
+        <table>
+          <thead><tr><th>Stage 1 variant (4 NFE)</th><th>VBench ↑</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Ours (Stage 1)</strong></td><td><strong>85.22</strong></td></tr>
+            <tr><td>&minus; KD</td><td>84.23</td></tr>
+            <tr><td>&minus; curriculum and Δσ</td><td>84.51</td></tr>
+            <tr><td>&minus; both (π-Flow, uniform queries)</td><td>83.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-scroll" tabindex="0" aria-label="Stage 2 ablation">
+        <table>
+          <thead><tr><th>2-NFE training</th><th>VBench ↑</th></tr></thead>
+          <tbody>
+            <tr><td>Direct π-Flow, Stage 1 recipe</td><td>82.40</td></tr>
+            <tr><td>Direct π-Flow from <i>π</i><sup>4NFE</sup></td><td>83.17</td></tr>
+            <tr><td>Stage 2: PSD, fresh pairs</td><td>83.51</td></tr>
+            <tr><td><strong>Stage 2: PSD, fixed set (ours)</strong></td><td><strong>84.56</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p><em><strong>Left:</strong> removing either guided initialization (KD) or the curriculum with Δσ weighting costs 0.7 to 1.0 points; removing both gives plain π-Flow from the base model. <strong>Right:</strong> training 2-NFE π-Flow directly stays below Stage 2 regardless of initialization; distilling the 4-NFE trajectories helps, and a fixed set of 64 trajectories adds another 1.05 points.</em></p>
+
+    <h3 id="final-segment">The last segment: no curriculum</h3>
+    <p>The final 4-NFE segment runs from <i>σ</i> = 2/3 to 0 and covers two thirds of the noise range under the shifted schedule, where the interval width Δσ grows steeply. There we sample query levels uniformly with unit weights from the first update. On the same prompt and noise, this gives sharper details and more natural motion than applying the curriculum there:</p>
+    <div class="video-showcase" data-video-showcase>
+      <div class="v-grid-2">
+        <figure class="v-card">
+          <video src="assets/videos/final_curriculum.mp4" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Curriculum in the final segment</span><span class="v-badge">4 NFE</span></figcaption>
+        </figure>
+        <figure class="v-card is-ours">
+          <video src="assets/videos/final_uniform.mp4" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Uniform <i>t</i> in the final segment (ours)</span><span class="v-badge">4 NFE</span></figcaption>
+        </figure>
+      </div>
+      <div class="v-controls end"><button type="button" class="v-sync-btn" data-sync-restart>↻ Restart in sync</button></div>
+      <p class="v-prompt-bar"><strong>Prompt:</strong> &ldquo;an airplane landing smoothly on a runway&rdquo;</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>π²-Flow: Analyzing and Improving π-Flow</span>
+  <a href="#top">Back to top ↑</a>
+</footer>
+
+<dialog id="figure-viewer" aria-label="Expanded figure">
+  <button type="button" class="close-viewer" aria-label="Close expanded figure">Close ✕</button>
+  <img alt="">
+</dialog>
+</body>
+</html>
