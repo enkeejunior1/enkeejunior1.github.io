@@ -110,7 +110,7 @@
           <p class="mstep-title"><span class="mstep-n">3</span>Short jumps stay in distribution</p>
           <p class="mstep-line">After a short 16/128 jump, <i>x̂<sub>t</sub></i> stays near the teacher's trajectories. Continuing generation from it with the teacher gives a video close to the reference.</p>
         </div>
-        <div class="mstep-beat" data-from="20" data-to="29">
+        <div class="mstep-beat" data-from="20" data-to="34">
           <p class="mstep-title"><span class="mstep-n">4</span>Long jumps leave it</p>
           <p class="mstep-line">From pure noise, longer jumps carry <i>x̂<sub>t</sub></i> out of distribution and the teacher's continuation degrades. At 64/128, the first step of 2-NFE generation, CLIP score drops by 0.12 and imaging quality by 0.34.</p>
         </div>
@@ -133,23 +133,23 @@
           <p class="mstep-title"><span class="mstep-n">1</span>Split the horizon into four segments</p>
           <p class="mstep-line">A 4-NFE policy has sources at <i>σ</i><sub>0</sub>, <i>σ</i><sub><i>K</i>/4</sub>, <i>σ</i><sub><i>K</i>/2</sub> and <i>σ</i><sub>3<i>K</i>/4</sub>, so each jump spans a quarter of the 128-interval grid.</p>
         </div>
-        <div class="mstep-beat" data-from="5" data-to="11.5">
+        <div class="mstep-beat" data-from="5" data-to="12">
           <p class="mstep-title"><span class="mstep-n">2</span>Stage 1: a jump-length curriculum</p>
           <p class="mstep-line">Within each segment, query levels open from short to long jumps during training. Long jumps enter only after the policy has learned short ones, so its queries stay where the teacher is reliable.</p>
         </div>
-        <div class="mstep-beat" data-from="11.5" data-to="17.5">
+        <div class="mstep-beat" data-from="12" data-to="18">
           <p class="mstep-title"><span class="mstep-n">3</span>The 4-NFE policy</p>
           <p class="mstep-line">Chaining the four learned jumps gives the 4-NFE policy <i>π</i><sup>4NFE</sup>. Every state it visits is reached by jumps of at most a quarter of the grid.</p>
         </div>
-        <div class="mstep-beat" data-from="17.5" data-to="24.5">
+        <div class="mstep-beat" data-from="18" data-to="25">
           <p class="mstep-title"><span class="mstep-n">4</span>Why not train 2 NFE directly?</p>
           <p class="mstep-line">A 2-NFE step spans half the grid. From noise, that jump leaves the reliable region, and the teacher's continuation degrades (right). Training 2-NFE π-Flow directly reaches only 82.40 to 83.17 VBench.</p>
         </div>
-        <div class="mstep-beat" data-from="24.5" data-to="30">
+        <div class="mstep-beat" data-from="25" data-to="31">
           <p class="mstep-title"><span class="mstep-n">5</span>Stage 2: freeze the 4-NFE policy</p>
           <p class="mstep-line">We roll out the frozen <i>π</i><sup>4NFE</sup> once on a fixed set of 64 prompt&ndash;noise pairs and record its states and velocities on every grid interval.</p>
         </div>
-        <div class="mstep-beat" data-from="30" data-to="37">
+        <div class="mstep-beat" data-from="31" data-to="39.5">
           <p class="mstep-title"><span class="mstep-n">6</span>Stage 2: match its trajectories in 2 NFE</p>
           <p class="mstep-line">The 2-NFE student, evaluated at the noise and at the expert's midpoint state, matches the expert's actions on every remaining interval. It never takes a half-grid jump or queries the teacher during training.</p>
         </div>
