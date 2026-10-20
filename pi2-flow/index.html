@@ -118,10 +118,6 @@
     </figure>
     <p><em>Schematic. Video frames are the middle frame of the teacher's continuation for one prompt; the Δ values are paired differences to the continuation from the 128-step reference state, averaged over 64 prompts (Wan2.1-1.3B, initialized student). Step with the arrows or the keyboard, or scrub the bar.</em></p>
 
-    <h3 id="measured">Measuring it: continue generation from the student's query state</h3>
-    <p>To test whether the teacher is still reliable at the student's queries, we let the initialized student take one jump from pure noise, of length 16/128 to 64/128 of the grid, and have the guided teacher generate the rest of the video from <i>x̂<sub>t</sub></i>. We compare against the teacher's continuation from the reference state on its own 128-step trajectory. A 16/128 jump costs little; a 64/128 jump, the first step of 2-NFE generation, causes severe degradation. Matching <i>v<sub>ϕ</sub></i>(<i>x̂<sub>t</sub></i>, <i>t</i>) there supervises the student with an unreliable target.</p>
-    <figure class="paper-figure narrow"><a class="figure-link" href="assets/figures/sec41_continuation.png" data-lightbox><img loading="lazy" decoding="async" src="assets/figures/sec41_continuation.png" alt="Paired change in CLIP score and imaging quality of the teacher continuation as the student's first jump grows from 16/128 to 64/128, with example frames."></a></figure>
-    <p><em>(a) Paired quality change relative to the teacher continuation from the 128-step reference state over 64 prompts (mean and 95% bootstrap CI). (b) Middle frame of the continuations as the jump grows.</em></p>
     <p>This gives a simple design principle: <strong>keep the student's queries near the teacher's trajectories.</strong> At 4 NFE we can do this by lengthening jumps gradually. At 2 NFE a single 64/128 jump from noise is too long, so we avoid querying the teacher at student states altogether.</p>
   </section>
 
@@ -157,19 +153,7 @@
     </figure>
     <p><em>Schematic. The 4- and 2-NFE frames are from our models on the airplane prompt; the frame in step 4 is the teacher's continuation after a 64/128 jump on another prompt, as in the section above.</em></p>
 
-    <h3 id="stage1">Stage 1 (4 NFE): on-policy π-Flow, with short jumps first</h3>
-    <p>Stage 1 keeps on-policy π-Flow but controls where it queries the teacher. Three components work together:</p>
-    <ul>
-      <li><strong>Jump-length curriculum.</strong> Within each segment, query levels are split into bins of equal width in the grid index and opened from the source outward. Opened bins stay active, so short jumps are trained throughout.</li>
-      <li><strong>Δσ action weighting.</strong> We supervise the displacement over a grid interval rather than the raw velocity, which scales the residual by the interval width Δσ. Under the shifted schedule, intervals widen toward the clean end, so the long jumps that the curriculum visits less often get commensurate weight. The curriculum and the weighting help only together.</li>
-      <li><strong>Guided initialization.</strong> The teacher is strongly guided (<i>w</i> = 9) while the student starts from the unguided base model. Distilling the guided teacher first (KD, 256 updates) lets Stage 1 start from a student that already matches the guided velocity field.</li>
-    </ul>
-
-    <h3 id="stage2">Stage 2 (2 NFE): distill the 4-NFE trajectories</h3>
-    <p>Stage 2 follows progressive self-distillation: two quarter-grid jumps of the frozen <i>π</i><sup>4NFE</sup> are distilled into each half-grid jump of the student, so every training state is reached by jumps of at most a quarter of the grid. Because the policy is a closed-form function of its grid velocities, the student can match all remaining intervals without rolling out a half-grid jump or querying <i>v<sub>ϕ</sub></i>.</p>
-    <figure class="paper-figure"><a class="figure-link" href="assets/figures/stage2_dagger.png" data-lightbox><img loading="lazy" decoding="async" src="assets/figures/stage2_dagger.png" alt="Overview of π²-Flow: Stage 1 learns four 4-NFE policies on-policy with a jump-length curriculum; Stage 2 matches the frozen 4-NFE trajectories with a 2-NFE student."></a></figure>
-    <p><em>Overview of π²-Flow. (a) Stage 1 rolls out four policies on-policy and expands query intervals from short to long jumps. (b) Stage 2 rolls out the frozen 4-NFE expert from noise; the 2-NFE student evaluates two policies at the expert's anchor states and matches the expert's actions on every grid interval.</em></p>
-    <p>One detail matters a lot here. Sampling fresh prompt&ndash;noise pairs at every update makes the Stage 2 loss plateau early. Precomputing the expert trajectories for a <strong>fixed set of 64 pairs</strong> and taking full-batch updates on them lets the loss keep falling, and raises 2-NFE VBench from 83.51 to 84.56 on unseen evaluation prompts, with a moderate cost in diversity.</p>
+    <p>One Stage 2 detail matters a lot. Sampling fresh prompt&ndash;noise pairs at every update makes the Stage 2 loss plateau early. Precomputing the expert trajectories for a <strong>fixed set of 64 pairs</strong> and taking full-batch updates on them lets the loss keep falling, and raises 2-NFE VBench from 83.51 to 84.56 on unseen evaluation prompts, with a moderate cost in diversity.</p>
     <figure class="paper-figure narrow"><a class="figure-link" href="assets/figures/stage2_loss.png" data-lightbox><img loading="lazy" decoding="async" src="assets/figures/stage2_loss.png" alt="Stage 2 training loss: fresh pairs plateau early while the fixed 64-pair set keeps decreasing."></a></figure>
     <p><em>Stage 2 training loss on Wan2.1-1.3B. Both runs use the same objective and optimizer. The fixed-set curve is the loss on its 64 training pairs.</em></p>
   </section>
@@ -218,9 +202,6 @@
       </table>
     </div>
     <p><em>VBench scores and dynamic degree are five-seed means. The V-JEPA 2 and VideoMAE V2 columns measure diversity as the mean pairwise feature distance among five videos per prompt (higher is more diverse). Within each block, darker blue means a higher rank; the teacher is not ranked.</em></p>
-
-    <figure class="paper-figure"><a class="figure-link" href="assets/figures/qualitative.jpg" data-lightbox><img loading="lazy" decoding="async" src="assets/figures/qualitative.jpg" alt="Qualitative comparison of rCM, AnyFlow and π²-Flow at 4 and 2 NFE, and four seeds per prompt at 4 NFE."></a></figure>
-    <p><em>(a) Four evenly spaced frames from rCM, AnyFlow and π²-Flow at 4 and 2 NFE, same prompt and seed. (b) Middle frames of four seeds per prompt at 4 NFE.</em></p>
   </section>
 
   <section class="content-section" id="diversity" data-section="Diversity">
