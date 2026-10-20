@@ -7,7 +7,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Analyzing and Improving FlowMap Distillation of Autoregressive Video Models">
   <meta property="og:description" content="Pure FlowMap distillation for causal autoregressive video models: motion-aware skip-layer guidance for Stage 1 and anti-drifting guidance for Stage 2.">
-  <meta property="og:image" content="assets/motion/gap-steps-poster.jpg">
+  <meta property="og:image" content="assets/motion/pipeline-steps-poster.jpg">
   <title>Analyzing and Improving FlowMap Distillation of Autoregressive Video Models</title>
   <link rel="stylesheet" href="project.css">
   <link rel="stylesheet" href="abstract.css">
@@ -99,120 +99,196 @@
   <!-- SECTION 1: WHY AR FLOWMAP DISTILLATION BREAKS -->
   <section class="content-section" id="gap" data-section="Why AR FlowMap Breaks">
     <h2>Why does FlowMap distillation fall short on autoregressive video models?</h2>
-    <p>Autoregressive (AR) video diffusion models generate video chunk by chunk, conditioning each new chunk on previously generated frames cached in the key–value (KV) cache. Distilling a 64-NFE causal teacher into a 4-step student typically follows a two-stage paradigm: <strong>Stage 1 (Teacher forcing)</strong> trains the student on clean ground-truth histories, and <strong>Stage 2 (Self-forcing)</strong> trains the student on its own autoregressive rollouts.</p>
-    <p>In principle, trajectory-level <strong>FlowMap distillation</strong> (such as <em>π-Flow</em> and <em>dCM</em>) can supervise both stages directly from the causal AR teacher without training a separate bidirectional critic. In practice, however, naive FlowMap distillation produces blurry fast motion after Stage 1 and suffers from severe color and structural drift during Stage 2—forcing prior work to fall back on mode-seeking Distribution Matching Distillation (DMD). We trace both issues to a fundamental limitation of how the causal teacher is guided in each stage.</p>
+    <p>An autoregressive (AR) video model generates a video chunk by chunk, and each chunk reads the previous ones through the key–value (KV) cache. FlowMap distillation (<em>π-Flow</em>, <em>dCM</em>) turns a 64-step causal teacher into a 4-step student by matching the teacher's denoising flow directly, with no extra bidirectional critic. This is how it works:</p>
 
-    <figure class="mstep" data-src="assets/motion/gap-steps.mp4" data-poster="assets/motion/gap-steps-poster.jpg" aria-label="Two-stage AR FlowMap distillation and its two failure modes, step by step.">
+    <!-- mstep:pipeline -->
+    <figure class="mstep" data-src="assets/motion/pipeline-steps.mp4" data-poster="assets/motion/pipeline-steps-poster.jpg" aria-label="How a FlowMap student is distilled from an autoregressive teacher, step by step.">
       <div class="mstep-words">
-        <div class="mstep-beat" data-from="0" data-to="6">
-          <p class="mstep-title"><span class="mstep-n">1</span>Stage 1: Teacher forcing</p>
-          <p class="mstep-line">Clean video history <i>x</i><sub>0</sub><sup>&lt;<i>i</i></sup> is cached in the KV cache. Given a noisy chunk <i>x</i><sub><i>s</i></sub><sup><i>i</i></sup>, the 4-step FlowMap student predicts <i>x̂</i><sub><i>t</i></sub><sup><i>i</i></sup> and matches the guided teacher <i>v</i><sup>*</sup>.</p>
+        <div class="mstep-beat" data-from="0" data-to="4">
+          <p class="mstep-title"><span class="mstep-n">1</span>Start from a real video</p>
+          <p class="mstep-line">In Stage 1 (teacher forcing), the history <i>h</i><sub><i>i</i></sub> = <i>x</i><sub>0</sub><sup>&lt;<i>i</i></sup> is real video, stored in the KV cache.</p>
         </div>
-        <div class="mstep-beat" data-from="6" data-to="12">
-          <p class="mstep-title"><span class="mstep-n">2</span>Stage 2: Self-forcing</p>
-          <p class="mstep-line">During inference there is no real history. Stage 2 conditions the student on its own rollout <i>x̂</i><sub>0</sub><sup>&lt;<i>i</i></sup>, appending each generated chunk back into the KV cache.</p>
+        <div class="mstep-beat" data-from="4" data-to="7.5">
+          <p class="mstep-title"><span class="mstep-n">2</span>Noise the next chunk</p>
+          <p class="mstep-line">The next chunk is mixed with noise: <i>x</i><sub><i>s</i></sub><sup><i>i</i></sup> = (1 − <i>s</i>) <i>x</i><sub>0</sub><sup><i>i</i></sup> + <i>s</i> ε.</p>
         </div>
-        <div class="mstep-beat" data-from="12" data-to="19">
-          <p class="mstep-title"><span class="mstep-n">3</span>Why CFG stops working after the first chunk</p>
-          <p class="mstep-line">In chunk 1 (from scratch), CFG smooths the teacher's velocity field (+7.7% in 1/<i>C</i><sub><i>v</i></sub>). In later chunks (<i>i</i> &gt; 1), history fixes the static background, concentrating uncertainty in moving regions where text CFG fails.</p>
+        <div class="mstep-beat" data-from="7.5" data-to="12">
+          <p class="mstep-title"><span class="mstep-n">3</span>The student jumps</p>
+          <p class="mstep-line">Reading the history, the FlowMap student jumps from <i>x</i><sub><i>s</i></sub><sup><i>i</i></sup> to a less noisy state <i>x̂</i><sub><i>t</i></sub><sup><i>i</i></sup> in one step.</p>
         </div>
-        <div class="mstep-beat" data-from="19" data-to="26">
-          <p class="mstep-title"><span class="mstep-n">4</span>Stage 1 failure: motion blurs in 4-step distillation</p>
-          <p class="mstep-line">Because moving regions retain high velocity curvature under CFG, 4-step student jumps accumulate truncation error—leaving the static gym background sharp while fast limb motion blurs.</p>
+        <div class="mstep-beat" data-from="12" data-to="17">
+          <p class="mstep-title"><span class="mstep-n">4</span>The teacher grades the jump</p>
+          <p class="mstep-line">At the landing point, the guided teacher's velocity <i>v</i><sup>*</sup> is the target. This is the only place the teacher enters the loss.</p>
         </div>
-        <div class="mstep-beat" data-from="26" data-to="34">
-          <p class="mstep-title"><span class="mstep-n">5</span>Stage 2 failure: the causal teacher continues drift</p>
-          <p class="mstep-line">The causal teacher <i>v</i><sub>ϕ</sub> was trained only on clean histories. When conditioned on a drifted rollout <i>x̂</i><sub>0</sub><sup>&lt;<i>i</i></sup>, it continues parallel to the ground-truth manifold rather than repairing the offset.</p>
+        <div class="mstep-beat" data-from="17" data-to="21.5">
+          <p class="mstep-title"><span class="mstep-n">5</span>At test time there is no real video</p>
+          <p class="mstep-line">In Stage 2 (self-forcing), the history is the student's own rollout <i>h</i><sub><i>i</i></sub> = <i>x̂</i><sub>0</sub><sup>&lt;<i>i</i></sup>, flaws included.</p>
+        </div>
+        <div class="mstep-beat" data-from="21.5" data-to="25.5">
+          <p class="mstep-title"><span class="mstep-n">6</span>Same jump, same teacher</p>
+          <p class="mstep-line">The objective does not change: the student jumps, and the teacher, now reading the rollout, gives the target.</p>
+        </div>
+        <div class="mstep-beat" data-from="25.5" data-to="30">
+          <p class="mstep-title"><span class="mstep-n">7</span>Each chunk extends the history</p>
+          <p class="mstep-line">After 4 steps, the finished chunk is appended to the KV cache and becomes history for the next one.</p>
         </div>
       </div>
     </figure>
-    <p><em>Use the left/right arrows (or keyboard arrow keys) to step through each beat, or click the progress bar to scrub.</em></p>
+    <!-- /mstep:pipeline -->
+    <p><em>Use the arrows (or the arrow keys) to step through, or click the progress bar to scrub. Frames are illustrative.</em></p>
 
-    <h3 id="cfg-curvature-analysis">1. In Stage 1, history resolves the static scene, leaving high curvature in moving regions</h3>
-    <p>For a 4-step FlowMap student to match the teacher accurately, the teacher's ODE trajectory must have low curvature. We quantify how smoothly the guided teacher's velocity field varies along its trajectory via the inverse normalized velocity sensitivity 1/<i>C</i><sub><i>v</i></sub>. On the first chunk (generated from scratch without history), standard Classifier-Free Guidance (CFG) reduces posterior uncertainty globally and increases velocity smoothness 1/<i>C</i><sub><i>v</i></sub> by <strong>+7.7%</strong>.</p>
-    <p>On subsequent chunks (<i>i</i> &gt; 1), however, the clean history <i>h</i><sub><i>i</i></sub> = <i>x</i><sub>0</sub><sup>&lt;<i>i</i></sup> already determines the static scene—a single Euler step of the teacher renders the background sharp while leaving the moving subject blurry. Because the history already satisfies the text prompt on the static scene, amplifying text conditioning via CFG provides no additional constraint on how moving objects evolve from frame to frame, and actually <em>degrades</em> velocity smoothness.</p>
+    <p>In both stages, the student is only as good as the target <i>v</i><sup>*</sup> it matches. With the standard CFG target, each stage fails in its own way:</p>
 
-    <div class="fig-pair">
-      <figure class="paper-figure">
-        <a class="figure-link" href="assets/figures/one-step-teacher.png" data-lightbox>
-          <img loading="lazy" decoding="async" src="assets/figures/one-step-teacher.png" alt="One-step teacher prediction given clean history: static background is already sharp while the moving golfer is blurry.">
-        </a>
-      </figure>
-      <figure class="paper-figure">
-        <a class="figure-link" href="assets/figures/cv_guidance.png" data-lightbox>
-          <img loading="lazy" decoding="async" src="assets/figures/cv_guidance.png" alt="Velocity smoothness gain 1/Cv under CFG, fixed skip-layer guidance, and motion-aware guidance on the first vs. second chunk.">
-        </a>
-      </figure>
-    </div>
-    <p><em><strong>Left (Fig. 3):</strong> Given clean history x<sup>1</sup>, a single teacher step already resolves the static golf course background, concentrating posterior uncertainty on the moving player (orange dashed box). <strong>Right (Fig. 4a):</strong> CFG improves velocity smoothness 1/C<sub>v</sub> on the first chunk (+7.7%) but degrades it on the second chunk once history is present.</em></p>
+    <!-- mstep:failure -->
+    <figure class="mstep" data-src="assets/motion/failure-steps.mp4" data-poster="assets/motion/failure-steps-poster.jpg" aria-label="The two failure modes of autoregressive FlowMap distillation, step by step.">
+      <div class="mstep-words">
+        <div class="mstep-beat" data-from="0" data-to="4.5">
+          <p class="mstep-title"><span class="mstep-n">1</span>The history already fixes the background</p>
+          <p class="mstep-line">Given a real history, the static background is decided: nearby noise samples all denoise to the same pixels.</p>
+        </div>
+        <div class="mstep-beat" data-from="4.5" data-to="9.5">
+          <p class="mstep-title"><span class="mstep-n">2</span>Motion is still open</p>
+          <p class="mstep-line">For the moving subject, nearby noise samples land on different poses. Standard CFG cannot calm this; it only strengthens a text prompt the history already satisfies.</p>
+        </div>
+        <div class="mstep-beat" data-from="9.5" data-to="14.5">
+          <p class="mstep-title"><span class="mstep-n">3</span>A 4-step student lands in between</p>
+          <p class="mstep-line">Four large jumps cannot follow trajectories that split apart, so the student lands between the poses: sharp background, blurred motion.</p>
+        </div>
+        <div class="mstep-beat" data-from="14.5" data-to="19.5">
+          <p class="mstep-title"><span class="mstep-n">4</span>What it looks like</p>
+          <p class="mstep-line">A Stage-1 student distilled with CFG: the gym stays sharp while the runner smears and dissolves.</p>
+        </div>
+        <div class="mstep-beat" data-from="19.5" data-to="23.5">
+          <p class="mstep-title"><span class="mstep-n">5</span>The teacher only saw clean histories</p>
+          <p class="mstep-line">The autoregressive teacher was trained on real videos, the shaded region.</p>
+        </div>
+        <div class="mstep-beat" data-from="23.5" data-to="28">
+          <p class="mstep-title"><span class="mstep-n">6</span>The student's rollout drifts</p>
+          <p class="mstep-line">In Stage 2, the student's small errors accumulate from chunk to chunk, and its own history leaves that region.</p>
+        </div>
+        <div class="mstep-beat" data-from="28" data-to="33.5">
+          <p class="mstep-title"><span class="mstep-n">7</span>The teacher continues the drift</p>
+          <p class="mstep-line">Given a drifted history, the teacher <i>v</i><sub>ϕ</sub> continues parallel to the data and keeps the offset. Matching it preserves the error instead of repairing it.</p>
+        </div>
+        <div class="mstep-beat" data-from="33.5" data-to="38.5">
+          <p class="mstep-title"><span class="mstep-n">8</span>What it looks like</p>
+          <p class="mstep-line">A student self-forced against the plain teacher: artifacts pile up over a 30 s rollout.</p>
+        </div>
+      </div>
+    </figure>
+    <!-- /mstep:failure -->
+
+    <details>
+      <summary>Analysis: why doesn't CFG fix Stage 1?</summary>
+      <p>We measure how smoothly the guided teacher's velocity varies between nearby states with the normalized sensitivity <i>C</i><sub><i>v</i></sub>; a 4-step student can follow a smooth (low-<i>C</i><sub><i>v</i></sub>) field. In the first chunk, which has no history, CFG raises the smoothness 1/<i>C</i><sub><i>v</i></sub> by up to 7.7%. In the second chunk it raises it by at most 0.3% and lowers it as guidance grows.</p>
+      <p>The reason is that the history already fixes the static background and largely satisfies the text prompt, so the remaining uncertainty sits in moving regions. A single teacher step from noise already gives a sharp background and a blurred moving player (left). CFG only strengthens the text condition and cannot steer frame-to-frame motion; uniform skip-layer guidance perturbs static and moving regions alike and saturates at +2.5% (right).</p>
+      <div class="fig-pair">
+        <figure class="paper-figure">
+          <a class="figure-link" href="assets/figures/one-step-teacher.png" data-lightbox>
+            <img loading="lazy" decoding="async" src="assets/figures/one-step-teacher.png" alt="One-step teacher prediction given a clean history: the background is already sharp while the moving golfer is blurred.">
+          </a>
+        </figure>
+        <figure class="paper-figure">
+          <a class="figure-link" href="assets/figures/cv_guidance.png" data-lightbox>
+            <img loading="lazy" decoding="async" src="assets/figures/cv_guidance.png" alt="Velocity smoothness gain 1/Cv under CFG, fixed skip-layer guidance and motion-aware guidance in the first and second chunk.">
+          </a>
+        </figure>
+      </div>
+    </details>
   </section>
 
   <!-- SECTION 2: METHOD -->
   <section class="content-section" id="method" data-section="Method">
-    <h2>Method: Modifying Only the Teacher Guidance</h2>
-    <p>Rather than introducing a separate bidirectional score network or adversarial DMD loss, we fix both stages of autoregressive FlowMap distillation by modifying <strong>only the teacher velocity <i>v</i><sup>*</sup></strong> used to supervise the student:</p>
-    <ul>
-      <li><strong>Stage 1 — Motion-Aware Skip-Layer Guidance:</strong> A lightweight uncertainty head on frozen teacher features predicts per-patch flow-matching residual variance <i>û</i><sub><i>p</i></sub> and selectively applies skip-layer guidance (SLG) to high-uncertainty moving regions.</li>
-      <li><strong>Stage 2 — Anti-Drifting Guidance:</strong> An online drift model <i>v</i><sub>ψ</sub> is updated with stop-gradient on the student's rollouts to estimate the drifted velocity, and subtracting <i>v</i><sub>ψ</sub> from the frozen teacher <i>v</i><sub>ϕ</sub> yields an inward restoring velocity (<i>v</i><sub>ϕ</sub> − <i>v</i><sub>ψ</sub>) that pulls rollouts back toward the clean manifold.</li>
-    </ul>
+    <h2>Method: change only the teacher's target</h2>
+    <p>Both failures come from the target <i>v</i><sup>*</sup>, so we change only <i>v</i><sup>*</sup>. The FlowMap loss and the student stay the same, and the distilled student still samples in 4 steps with no guidance at inference.</p>
 
-    <figure class="mstep" data-src="assets/motion/method-steps.mp4" data-poster="assets/motion/method-steps-poster.jpg" aria-label="Motion-aware skip-layer guidance and anti-drifting guidance, step by step.">
+    <h3 id="stage1-motion-aware">Stage 1: Motion-aware skip-layer guidance</h3>
+    <!-- mstep:motion -->
+    <figure class="mstep" data-src="assets/motion/motion-steps.mp4" data-poster="assets/motion/motion-steps-poster.jpg" aria-label="Motion-aware skip-layer guidance, step by step.">
       <div class="mstep-words">
-        <div class="mstep-beat" data-from="0" data-to="6.5">
-          <p class="mstep-title"><span class="mstep-n">1</span>Stage 1: Predict patch-wise motion uncertainty</p>
-          <p class="mstep-line">A lightweight head on frozen teacher features (<code>// sg</code>) is trained with a Gaussian NLL loss for 500 steps to predict per-patch residual variance <i>û</i><sub><i>p</i></sub>, which automatically highlights moving regions in chunks <i>i</i> &gt; 1.</p>
+        <div class="mstep-beat" data-from="0" data-to="4">
+          <p class="mstep-title"><span class="mstep-n">1</span>The teacher's velocity</p>
+          <p class="mstep-line">The teacher reads the noisy chunk and its history and predicts a velocity <i>v</i><sub>ϕ</sub>.</p>
         </div>
-        <div class="mstep-beat" data-from="6.5" data-to="13.5">
-          <p class="mstep-title"><span class="mstep-n">2</span>Stage 1: Motion-aware skip-layer guidance</p>
-          <p class="mstep-line">Weighting the negative branch's block skip by normalized uncertainty <i>u</i><sub><i>p</i></sub> concentrates guidance on moving patches (+16.4% local smoothness on top motion decile <i>D</i><sub>10</sub>), resolving fast limb motion in 4 steps.</p>
+        <div class="mstep-beat" data-from="4" data-to="9">
+          <p class="mstep-title"><span class="mstep-n">2</span>Guidance pushes away from a weaker branch</p>
+          <p class="mstep-line">The guided target <i>v</i><sup>*</sup> extrapolates from a weaker branch <i>v</i><sub>ϕ</sub><sup>−</sup>. With CFG, the weaker branch only swaps in a negative prompt.</p>
         </div>
-        <div class="mstep-beat" data-from="13.5" data-to="20.5">
-          <p class="mstep-title"><span class="mstep-n">3</span>Stage 2: Track student drift with an online drift model</p>
-          <p class="mstep-line">During self-forcing, an online drift model <i>v</i><sub>ψ</sub> is trained with flow matching (<code>// sg</code>, <i>n</i> = 5 steps per student step) on student-generated chunks <i>x̂</i><sub>0</sub><sup><i>i</i></sup> conditioned on drifted history <i>x̂</i><sub>0</sub><sup>&lt;<i>i</i></sup>.</p>
+        <div class="mstep-beat" data-from="9" data-to="14">
+          <p class="mstep-title"><span class="mstep-n">3</span>Find where the teacher is unsure</p>
+          <p class="mstep-line">A small head on detached features of block ℓ predicts each patch's uncertainty <i>û</i><sub><i>p</i></sub>. Once a history exists, it lights up the moving subject.</p>
         </div>
-        <div class="mstep-beat" data-from="20.5" data-to="28">
-          <p class="mstep-title"><span class="mstep-n">4</span>Stage 2: Anti-drifting guidance pulls rollouts back to the manifold</p>
-          <p class="mstep-line">Combining the teacher with the inward correction (<i>v</i><sub>ϕ</sub> − <i>v</i><sub>ψ</sub>) repairs color and structural drift on each chunk, keeping 30-second rollouts sharp and stable.</p>
+        <div class="mstep-beat" data-from="14" data-to="19.5">
+          <p class="mstep-title"><span class="mstep-n">4</span>Weaken the teacher only there</p>
+          <p class="mstep-line">In the weaker branch, block ℓ is skipped patch by patch with strength <i>u</i><sub><i>p</i></sub>, so guidance acts on moving patches and leaves the settled background alone.</p>
+        </div>
+        <div class="mstep-beat" data-from="19.5" data-to="24.5">
+          <p class="mstep-title"><span class="mstep-n">5</span>Sharp motion in 4 steps</p>
+          <p class="mstep-line">Same prompt and noise after Stage 1: with motion-aware guidance, the runner stays sharp.</p>
         </div>
       </div>
     </figure>
-    <p><em>Step-by-step overview of our two teacher guidance mechanisms. At inference, the distilled 4-NFE student runs by itself with zero guidance overhead.</em></p>
+    <!-- /mstep:motion -->
 
-    <h3 id="stage1-motion-aware">Stage 1: Motion-Aware Skip-Layer Guidance</h3>
-    <p>Skip-Layer Guidance (SLG) perturbs the negative guidance branch by skipping a transformer block, which relies on spatiotemporal context rather than text conditioning alone. However, applying SLG uniformly across all patches perturbs already-certain static background regions and saturates early. Instead, we attach a lightweight uncertainty head to intermediate features of block ℓ = 10 of the frozen positive-prompt teacher and train it for 500 updates to predict the log variance of the teacher's flow-matching residual.</p>
-    <p>As shown below, the predicted uncertainty <i>û</i><sub><i>p</i></sub> is nearly uniform on the first chunk (where the entire scene is synthesized from scratch), and automatically concentrates on moving regions in subsequent chunks. Using normalized uncertainty <i>u</i><sub><i>p</i></sub> ∈ [0, 1] as a soft gate on the skipped block increases local velocity smoothness 1/<i>C</i><sub><i>v</i></sub><sup>local</sup> monotonically across uncertainty deciles—reaching <strong>+16.4%</strong> over CFG on the highest-uncertainty moving patches (<i>D</i><sub>10</sub>).</p>
-
-    <figure class="paper-figure">
-      <a class="figure-link" href="assets/figures/uncertainty_strip.png" data-lightbox>
-        <img loading="lazy" decoding="async" src="assets/figures/uncertainty_strip.png" alt="Predicted uncertainty across video frames: uniform on Frame 0 (chunk 1), then concentrated on moving regions in Frames 20-80.">
-      </a>
-    </figure>
-    <p><em><strong>Predicted patch-wise uncertainty û<sub>p</sub> across chunks (Fig. 6):</strong> On Frame 0 (chunk 1, from scratch), uncertainty is high across the whole frame. On Frames 20–80 (chunks i &gt; 1, conditioned on history), uncertainty concentrates specifically on the moving subject and hands while dropping on the static background.</em></p>
-
-    <div class="fig-pair">
+    <details>
+      <summary>Analysis: where the uncertainty goes, and what it buys</summary>
+      <p>The uncertainty head is a single Transformer layer on detached features of block ℓ = 10 of the frozen teacher, trained for 500 updates with a Gaussian negative log-likelihood on the teacher's flow-matching residual. Its prediction <i>û</i><sub><i>p</i></sub> is high everywhere in the first frame, which has no history, and concentrates on the moving people afterwards:</p>
       <figure class="paper-figure">
-        <a class="figure-link" href="assets/figures/motion-aware-guidance.png" data-lightbox>
-          <img loading="lazy" decoding="async" src="assets/figures/motion-aware-guidance.png" alt="Motion-aware skip-layer guidance architecture.">
+        <a class="figure-link" href="assets/figures/uncertainty_strip.png" data-lightbox>
+          <img loading="lazy" decoding="async" src="assets/figures/uncertainty_strip.png" alt="Predicted uncertainty: high everywhere in frame 0, concentrated on the moving people in frames 20 to 80.">
         </a>
       </figure>
-      <figure class="paper-figure">
-        <a class="figure-link" href="assets/figures/cv_deciles.png" data-lightbox>
-          <img loading="lazy" decoding="async" src="assets/figures/cv_deciles.png" alt="Local velocity smoothness gain across uncertainty deciles D1 to D10.">
-        </a>
-      </figure>
-    </div>
-    <p><em><strong>Left (Fig. 5):</strong> Motion-aware skip-layer guidance predicts patch-wise uncertainty u from block ℓ of the positive branch and uses u as a soft skip weight in the negative branch. <strong>Right (Fig. 4b):</strong> Local smoothness gain 1/C<sub>v</sub><sup>local</sup> over CFG across uncertainty deciles D<sub>1</sub>–D<sub>10</sub>, reaching +16.4% on the highest-motion decile D<sub>10</sub>.</em></p>
+      <p>The prediction is smoothed with a 3×3 mean pool and normalized per chunk index and noise level into a skip strength <i>u</i><sub><i>p</i></sub> = max(0, <i>ū</i> + σ<sub><i>u</i></sub>(<i>û</i><sub><i>p</i></sub> − μ)/σ), with <i>ū</i> = σ<sub><i>u</i></sub> = 0.5. In the second chunk, motion-aware guidance raises whole-chunk smoothness 1/<i>C</i><sub><i>v</i></sub> by +3.4% (CFG: at most 0.3%; uniform skip-layer guidance: +2.5%). The gain grows with the predicted uncertainty and reaches +16.4% over CFG on the most uncertain tenth of the patches (right).</p>
+      <div class="fig-pair">
+        <figure class="paper-figure">
+          <a class="figure-link" href="assets/figures/motion-aware-guidance.png" data-lightbox>
+            <img loading="lazy" decoding="async" src="assets/figures/motion-aware-guidance.png" alt="Motion-aware skip-layer guidance architecture.">
+          </a>
+        </figure>
+        <figure class="paper-figure">
+          <a class="figure-link" href="assets/figures/cv_deciles.png" data-lightbox>
+            <img loading="lazy" decoding="async" src="assets/figures/cv_deciles.png" alt="Local velocity smoothness gain over CFG across uncertainty deciles D1 to D10.">
+          </a>
+        </figure>
+      </div>
+    </details>
 
-    <h3 id="stage2-antidrift">Stage 2: Anti-Drifting Guidance</h3>
-    <p>During self-forcing (Stage 2), the student rolls out its own history <i>ĥ</i><sub><i>i</i></sub> = <i>x̂</i><sub>0</sub><sup>&lt;<i>i</i></sup>. Because the causal teacher <i>v</i><sub>ϕ</sub> was trained exclusively on clean ground-truth histories, conditioning <i>v</i><sub>ϕ</sub> on a drifted history <i>ĥ</i><sub><i>i</i></sub> produces a trajectory that continues parallel to the ground-truth manifold without removing the accumulated offset.</p>
-    <p>To construct a corrective direction using only causal models, we maintain an <strong>online drift model <i>v</i><sub>ψ</sub></strong> initialized from the teacher and updated with standard flow matching (<i>n</i> = 5 updates per student update) on the student's generated chunks <i>x̂</i><sub>0</sub><sup><i>i</i></sup> conditioned on the student's rollout history <i>ĥ</i><sub><i>i</i></sub>. Because <i>v</i><sub>ϕ</sub> continues parallel to the clean manifold while <i>v</i><sub>ψ</sub> points along the student's further drift, their difference <strong><i>v</i><sub>ϕ</sub> − <i>v</i><sub>ψ</sub></strong> points <em>inward</em> toward the clean manifold:</p>
-
-    <figure class="paper-figure">
-      <a class="figure-link" href="assets/figures/sec2_beat4.png" data-lightbox>
-        <img loading="lazy" decoding="async" src="assets/figures/sec2_beat4.png" alt="Exposure bias vs. Anti-drifting guidance manifold schematic, next-chunk prediction, and 30s rollout comparison.">
-      </a>
+    <h3 id="stage2-antidrift">Stage 2: Anti-drifting guidance</h3>
+    <!-- mstep:antidrift -->
+    <figure class="mstep" data-src="assets/motion/antidrift-steps.mp4" data-poster="assets/motion/antidrift-steps-poster.jpg" aria-label="Anti-drifting guidance, step by step.">
+      <div class="mstep-words">
+        <div class="mstep-beat" data-from="0" data-to="4">
+          <p class="mstep-title"><span class="mstep-n">1</span>The teacher keeps the offset</p>
+          <p class="mstep-line">From a drifted history, the teacher <i>v</i><sub>ϕ</sub> continues parallel to the data.</p>
+        </div>
+        <div class="mstep-beat" data-from="4" data-to="9">
+          <p class="mstep-title"><span class="mstep-n">2</span>Model the drift itself</p>
+          <p class="mstep-line">A drift model <i>v</i><sub>ψ</sub>, a copy of the teacher, is fit online to the student's own chunks, so it follows the student further out.</p>
+        </div>
+        <div class="mstep-beat" data-from="9" data-to="13.5">
+          <p class="mstep-title"><span class="mstep-n">3</span>Their difference points back</p>
+          <p class="mstep-line">Since <i>v</i><sub>ϕ</sub> runs parallel and <i>v</i><sub>ψ</sub> drifts out, <i>v</i><sub>ϕ</sub> − <i>v</i><sub>ψ</sub> points back toward the data.</p>
+        </div>
+        <div class="mstep-beat" data-from="13.5" data-to="19">
+          <p class="mstep-title"><span class="mstep-n">4</span>A target that repairs drift</p>
+          <p class="mstep-line">Adding (γ − 1)(<i>v</i><sub>ϕ</sub> − <i>v</i><sub>ψ</sub>) to the guided teacher gives a target <i>v</i><sup>*</sup> that steers each chunk back. Only the target changes.</p>
+        </div>
+        <div class="mstep-beat" data-from="19" data-to="24">
+          <p class="mstep-title"><span class="mstep-n">5</span>On one chunk</p>
+          <p class="mstep-line">Given the same drifted rollout, the plain teacher's next chunk keeps the noise; the anti-drifting target's is cleaner.</p>
+        </div>
+        <div class="mstep-beat" data-from="24" data-to="29">
+          <p class="mstep-title"><span class="mstep-n">6</span>Over 30 seconds</p>
+          <p class="mstep-line">A student trained against this target keeps the 30 s rollout stable.</p>
+        </div>
+      </div>
     </figure>
-    <p><em><strong>Top (Fig. 7):</strong> (a) Under standard self-forcing, the causal teacher v<sub>ϕ</sub> continues parallel to the ground-truth manifold from a drifted history x̂<sup>&lt;i</sup>. (b) Subtracting the online drift model v<sub>ψ</sub> creates an inward correction (v<sub>ϕ</sub> − v<sub>ψ</sub>) that steers the guided trajectory back toward the clean manifold. (c) On a single next chunk given a drifted chef rollout, the unguided teacher retains the washed-out tint whereas the anti-drifting guided teacher restores natural contrast. <strong>Bottom:</strong> Over a 30 s rollout (67 chunks), anti-drifting guidance prevents cumulative color and structural degradation.</em></p>
+    <!-- /mstep:antidrift -->
+
+    <details>
+      <summary>How is this different from DMD?</summary>
+      <p>Both contrast the teacher with a model fit to the student's rollouts, but they act at different places. DMD minimizes the mode-seeking reverse KL at the clean output: it re-noises the student's final video with fresh noise and backpropagates the score difference into it, which discards the coupling between a noise sample and its video. Anti-drifting guidance keeps the deterministic coupling of FlowMap distillation and changes only the teacher's velocity at the intermediate noisy state of each chunk, along the denoising trajectory. Adding (γ − 1)(<i>v</i><sub>ϕ</sub> − <i>v</i><sub>ψ</sub>) shifts that velocity in proportion to the log density ratio between the teacher's and the student's distributions, which steers the trajectory back toward the data. We use γ = 5, only in Stage 2 and after the first chunk.</p>
+    </details>
   </section>
 
   <!-- SECTION 3: 5s GENERATION RESULTS -->
@@ -271,258 +347,43 @@
     <p><em>5-second VBench Total score (five-seed mean across 946 extended prompts) for 4-NFE chunk-wise students vs. their 64-NFE causal AR teachers. Click &ldquo;Replay&rdquo; to replay the animation.</em></p>
 
     <div class="table-scroll" tabindex="0" aria-label="Main 5-second quantitative comparison table">
+      <!-- table:main -->
       <table>
         <thead>
-          <tr>
-            <th>Setting</th>
-            <th>Init / Teacher Family</th>
-            <th>Method</th>
-            <th>Distillation</th>
-            <th>Teacher</th>
-            <th>NFE</th>
-            <th>VBench Total ↑</th>
-            <th>Quality ↑</th>
-            <th>Semantic ↑</th>
-            <th>Dynamic ↑</th>
-            <th>V-JEPA 2 Cos ↑</th>
-            <th>VideoMAE V2 Cos ↑</th>
-          </tr>
+          <tr><th>Setting</th><th>Init</th><th>Method</th><th>Type</th><th>Teacher</th><th>NFE</th><th>VBench Total ↑</th><th>Quality ↑</th><th>Semantic ↑</th><th>Dynamic ↑</th><th>V-JEPA 2 Cos ↑</th><th>VideoMAE V2 Cos ↑</th></tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Chunk-wise</td>
-            <td>Self Forcing</td>
-            <td>Self Forcing<sup>†</sup></td>
-            <td>DMD</td>
-            <td>14B</td>
-            <td>4</td>
-            <td>84.22</td>
-            <td>84.83</td>
-            <td>81.81</td>
-            <td>66.1</td>
-            <td>0.0555</td>
-            <td>0.0117</td>
-          </tr>
-          <tr>
-            <td>Chunk-wise</td>
-            <td>Causal Forcing</td>
-            <td><em>AR teacher, CFG</em></td>
-            <td>—</td>
-            <td>—</td>
-            <td>32×2</td>
-            <td><em>84.46</em></td>
-            <td><em>85.11</em></td>
-            <td><em>81.86</em></td>
-            <td><em>77.8</em></td>
-            <td><em>0.0882</em></td>
-            <td><em>0.0236</em></td>
-          </tr>
-          <tr>
-            <td>Chunk-wise</td>
-            <td>Causal Forcing</td>
-            <td>Causal Forcing<sup>†</sup></td>
-            <td>DMD</td>
-            <td>14B</td>
-            <td>4</td>
-            <td>84.74</td>
-            <td>85.41</td>
-            <td>82.02</td>
-            <td>83.9</td>
-            <td>0.0745</td>
-            <td>0.0198</td>
-          </tr>
-          <tr>
-            <td>Chunk-wise</td>
-            <td>Causal Forcing</td>
-            <td><strong>Ours (π-Flow)</strong></td>
-            <td><strong>FlowMap</strong></td>
-            <td><strong>1.3B<sup>AR</sup></strong></td>
-            <td><strong>4</strong></td>
-            <td><strong>84.76</strong></td>
-            <td><strong>85.83</strong></td>
-            <td>80.46</td>
-            <td><strong>88.3</strong></td>
-            <td><strong>0.0964</strong></td>
-            <td><strong>0.0281</strong></td>
-          </tr>
-          <tr>
-            <td>Chunk-wise</td>
-            <td>Causal Forcing</td>
-            <td><strong>Ours (dCM)</strong></td>
-            <td><strong>FlowMap</strong></td>
-            <td><strong>1.3B<sup>AR</sup></strong></td>
-            <td><strong>4</strong></td>
-            <td>83.70</td>
-            <td>84.55</td>
-            <td>80.32</td>
-            <td>69.7</td>
-            <td><strong>0.0875</strong></td>
-            <td><strong>0.0241</strong></td>
-          </tr>
-          <tr>
-            <td>Chunk-wise</td>
-            <td>Causal-rCM</td>
-            <td><em>AR teacher, CFG</em></td>
-            <td>—</td>
-            <td>—</td>
-            <td>32×2</td>
-            <td><em>84.38</em></td>
-            <td><em>84.85</em></td>
-            <td><em>82.47</em></td>
-            <td><em>65.0</em></td>
-            <td><em>0.0624</em></td>
-            <td><em>0.0128</em></td>
-          </tr>
-          <tr>
-            <td>Chunk-wise</td>
-            <td>Causal-rCM</td>
-            <td>Causal-rCM<sup>†</sup></td>
-            <td>DMD</td>
-            <td>14B<sup>AR</sup>, 14B</td>
-            <td>4</td>
-            <td><strong>84.92</strong></td>
-            <td>85.44</td>
-            <td><strong>82.82</strong></td>
-            <td>81.1</td>
-            <td>0.0666</td>
-            <td>0.0166</td>
-          </tr>
-          <tr>
-            <td>Chunk-wise</td>
-            <td>Causal-rCM</td>
-            <td>Causal-rCM, TF-sCM<sup>†</sup></td>
-            <td>FlowMap</td>
-            <td>14B<sup>AR</sup></td>
-            <td>4</td>
-            <td>83.78</td>
-            <td>84.49</td>
-            <td>80.92</td>
-            <td>67.5</td>
-            <td>0.0789</td>
-            <td>0.0182</td>
-          </tr>
-          <tr>
-            <td>Chunk-wise</td>
-            <td>Causal-rCM</td>
-            <td><strong>Ours (π-Flow)</strong></td>
-            <td><strong>FlowMap</strong></td>
-            <td><strong>1.3B<sup>AR</sup></strong></td>
-            <td><strong>4</strong></td>
-            <td><strong>84.87</strong></td>
-            <td><strong>85.76</strong></td>
-            <td>81.29</td>
-            <td>71.4</td>
-            <td><strong>0.0735</strong></td>
-            <td>0.0143</td>
-          </tr>
-          <tr>
-            <td>Chunk-wise</td>
-            <td>Causal-rCM</td>
-            <td><strong>Ours (dCM)</strong></td>
-            <td><strong>FlowMap</strong></td>
-            <td><strong>1.3B<sup>AR</sup></strong></td>
-            <td><strong>4</strong></td>
-            <td>84.54</td>
-            <td>85.20</td>
-            <td>81.91</td>
-            <td>68.3</td>
-            <td>0.0634</td>
-            <td>0.0122</td>
-          </tr>
-          <tr>
-            <td>Frame-wise</td>
-            <td>Causal Forcing</td>
-            <td>Causal Forcing<sup>†</sup></td>
-            <td>DMD</td>
-            <td>14B</td>
-            <td>4</td>
-            <td>82.79</td>
-            <td>83.52</td>
-            <td>79.87</td>
-            <td><strong>98.6</strong></td>
-            <td>0.0514</td>
-            <td>0.0153</td>
-          </tr>
-          <tr>
-            <td>Frame-wise</td>
-            <td>Causal Forcing</td>
-            <td><strong>Ours (π-Flow)</strong></td>
-            <td><strong>FlowMap</strong></td>
-            <td><strong>1.3B<sup>AR</sup></strong></td>
-            <td><strong>4</strong></td>
-            <td><strong>83.35</strong></td>
-            <td><strong>84.48</strong></td>
-            <td>78.83</td>
-            <td>64.7</td>
-            <td><strong>0.0800</strong></td>
-            <td><strong>0.0179</strong></td>
-          </tr>
-          <tr>
-            <td>Frame-wise</td>
-            <td>Causal Forcing</td>
-            <td><strong>Ours (dCM)</strong></td>
-            <td><strong>FlowMap</strong></td>
-            <td><strong>1.3B<sup>AR</sup></strong></td>
-            <td><strong>4</strong></td>
-            <td>82.97</td>
-            <td>83.96</td>
-            <td>78.99</td>
-            <td>68.9</td>
-            <td><strong>0.0940</strong></td>
-            <td><strong>0.0276</strong></td>
-          </tr>
-          <tr>
-            <td>Frame-wise</td>
-            <td>Causal-rCM</td>
-            <td>Causal-rCM, TF-sCM<sup>†</sup></td>
-            <td>FlowMap</td>
-            <td>14B<sup>AR</sup></td>
-            <td>4</td>
-            <td>82.94</td>
-            <td>84.12</td>
-            <td>78.21</td>
-            <td>71.4</td>
-            <td><strong>0.0856</strong></td>
-            <td><strong>0.0216</strong></td>
-          </tr>
-          <tr>
-            <td>Frame-wise</td>
-            <td>Causal-rCM</td>
-            <td><strong>Ours (π-Flow)</strong></td>
-            <td><strong>FlowMap</strong></td>
-            <td><strong>1.3B<sup>AR</sup></strong></td>
-            <td><strong>4</strong></td>
-            <td><strong>84.04</strong></td>
-            <td><strong>85.10</strong></td>
-            <td>79.80</td>
-            <td><strong>73.9</strong></td>
-            <td>0.0733</td>
-            <td>0.0185</td>
-          </tr>
-          <tr>
-            <td>Frame-wise</td>
-            <td>Causal-rCM</td>
-            <td><strong>Ours (dCM)</strong></td>
-            <td><strong>FlowMap</strong></td>
-            <td><strong>1.3B<sup>AR</sup></strong></td>
-            <td><strong>4</strong></td>
-            <td>83.78</td>
-            <td>84.64</td>
-            <td><strong>80.33</strong></td>
-            <td>60.8</td>
-            <td>0.0715</td>
-            <td>0.0148</td>
-          </tr>
+          <tr><td>Chunk-wise</td><td>Self Forcing</td><td>Self Forcing<sup>†</sup></td><td>DMD</td><td>14B</td><td>4</td><td class="r4">84.22</td><td class="r4">84.83</td><td class="r4">81.81</td><td class="r4">66.1</td><td class="r4">0.0555</td><td class="r4">0.0117</td></tr>
+          <tr class="is-ref"><td>Chunk-wise</td><td>Causal Forcing</td><td>AR teacher, CFG</td><td>—</td><td>—</td><td>32×2</td><td class="ref">84.46</td><td class="ref">85.11</td><td class="ref">81.86</td><td class="ref">77.8</td><td class="ref">0.0882</td><td class="ref">0.0236</td></tr>
+          <tr><td>Chunk-wise</td><td>Causal Forcing</td><td>Causal Forcing<sup>†</sup></td><td>DMD</td><td>14B</td><td>4</td><td class="r4">84.74</td><td class="r4">85.41</td><td class="r2">82.02</td><td class="r2">83.9</td><td class="r4">0.0745</td><td class="r3">0.0198</td></tr>
+          <tr class="is-ours"><td>Chunk-wise</td><td>Causal Forcing</td><td class="ours">Ours (π-Flow)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r3">84.76</td><td class="r1">85.83</td><td class="r4">80.46</td><td class="r1">88.3</td><td class="r1">0.0964</td><td class="r1">0.0281</td></tr>
+          <tr class="is-ours"><td>Chunk-wise</td><td>Causal Forcing</td><td class="ours">Ours (dCM)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">83.70</td><td class="r4">84.55</td><td class="r4">80.32</td><td class="r4">69.7</td><td class="r2">0.0875</td><td class="r2">0.0241</td></tr>
+          <tr class="is-ref"><td>Chunk-wise</td><td>Causal-rCM</td><td>AR teacher, CFG</td><td>—</td><td>—</td><td>32×2</td><td class="ref">84.38</td><td class="ref">84.85</td><td class="ref">82.47</td><td class="ref">65.0</td><td class="ref">0.0624</td><td class="ref">0.0128</td></tr>
+          <tr><td>Chunk-wise</td><td>Causal-rCM</td><td>Causal-rCM<sup>†</sup></td><td>DMD</td><td>14B<sup>AR</sup>, 14B</td><td>4</td><td class="r1">84.92</td><td class="r3">85.44</td><td class="r1">82.82</td><td class="r3">81.1</td><td class="r4">0.0666</td><td class="r4">0.0166</td></tr>
+          <tr><td>Chunk-wise</td><td>Causal-rCM</td><td>Causal-rCM, TF-sCM<sup>†</sup></td><td>FlowMap</td><td>14B<sup>AR</sup></td><td>4</td><td class="r4">83.78</td><td class="r4">84.49</td><td class="r4">80.92</td><td class="r4">67.5</td><td class="r3">0.0789</td><td class="r4">0.0182</td></tr>
+          <tr class="is-ours"><td>Chunk-wise</td><td>Causal-rCM</td><td class="ours">Ours (π-Flow)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r2">84.87</td><td class="r2">85.76</td><td class="r4">81.29</td><td class="r4">71.4</td><td class="r4">0.0735</td><td class="r4">0.0143</td></tr>
+          <tr class="is-ours"><td>Chunk-wise</td><td>Causal-rCM</td><td class="ours">Ours (dCM)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">84.54</td><td class="r4">85.20</td><td class="r3">81.91</td><td class="r4">68.3</td><td class="r4">0.0634</td><td class="r4">0.0122</td></tr>
+          <tr class="is-ref"><td>Frame-wise</td><td>Causal Forcing</td><td>AR teacher, CFG</td><td>—</td><td>—</td><td>32×2</td><td class="ref">82.84</td><td class="ref">83.38</td><td class="ref">80.68</td><td class="ref">88.6</td><td class="ref">0.0944</td><td class="ref">0.0306</td></tr>
+          <tr><td>Frame-wise</td><td>Causal Forcing</td><td>Causal Forcing<sup>†</sup></td><td>DMD</td><td>14B</td><td>4</td><td class="r4">82.79</td><td class="r4">83.52</td><td class="r4">79.87</td><td class="r1">98.6</td><td class="r4">0.0514</td><td class="r4">0.0153</td></tr>
+          <tr><td>Frame-wise</td><td>Causal Forcing</td><td>Causal Forcing++<sup>†</sup></td><td>DMD</td><td>14B</td><td>2</td><td class="r1">84.55</td><td class="r2">85.25</td><td class="r1">81.75</td><td class="r4">63.9</td><td class="r4">0.0608</td><td class="r4">0.0102</td></tr>
+          <tr class="is-ours"><td>Frame-wise</td><td>Causal Forcing</td><td class="ours">Ours (π-Flow)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">83.35</td><td class="r4">84.48</td><td class="r4">78.83</td><td class="r4">64.7</td><td class="r3">0.0800</td><td class="r4">0.0179</td></tr>
+          <tr class="is-ours"><td>Frame-wise</td><td>Causal Forcing</td><td class="ours">Ours (dCM)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">82.97</td><td class="r4">83.96</td><td class="r4">78.99</td><td class="r4">68.9</td><td class="r1">0.0940</td><td class="r1">0.0276</td></tr>
+          <tr class="is-ref"><td>Frame-wise</td><td>Causal-rCM</td><td>AR teacher, CFG</td><td>—</td><td>—</td><td>32×2</td><td class="ref">83.84</td><td class="ref">84.51</td><td class="ref">81.19</td><td class="ref">77.8</td><td class="ref">0.0659</td><td class="ref">0.0165</td></tr>
+          <tr><td>Frame-wise</td><td>Causal-rCM</td><td>Causal-rCM<sup>†</sup></td><td>DMD</td><td>14B<sup>AR</sup>, 14B</td><td>4</td><td class="r2">84.46</td><td class="r1">85.26</td><td class="r2">81.27</td><td class="r4">67.5</td><td class="r4">0.0670</td><td class="r4">0.0117</td></tr>
+          <tr><td>Frame-wise</td><td>Causal-rCM</td><td>Causal-rCM, TF-sCM<sup>†</sup></td><td>FlowMap</td><td>14B<sup>AR</sup></td><td>4</td><td class="r4">82.94</td><td class="r4">84.12</td><td class="r4">78.21</td><td class="r3">71.4</td><td class="r2">0.0856</td><td class="r2">0.0216</td></tr>
+          <tr class="is-ours"><td>Frame-wise</td><td>Causal-rCM</td><td class="ours">Ours (π-Flow)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r3">84.04</td><td class="r3">85.10</td><td class="r4">79.80</td><td class="r2">73.9</td><td class="r4">0.0733</td><td class="r3">0.0185</td></tr>
+          <tr class="is-ours"><td>Frame-wise</td><td>Causal-rCM</td><td class="ours">Ours (dCM)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">83.78</td><td class="r4">84.64</td><td class="r3">80.33</td><td class="r4">60.8</td><td class="r4">0.0715</td><td class="r4">0.0148</td></tr>
         </tbody>
       </table>
+      <!-- /table:main -->
     </div>
-    <p><em><strong>Table 1:</strong> Comparison of 4-NFE AR students on Wan2.1-1.3B across 946 extended VBench prompts (five-seed means). Unlike DMD baselines that distill from a 14B bidirectional teacher, our FlowMap students distill directly from the 1.3B causal AR teacher.</em></p>
+    <p><em><strong>Table 1:</strong> 4-NFE AR students on Wan2.1-1.3B. VBench scores and dynamic degree are five-seed means over the 946 extended prompts; the diversity columns are the mean pairwise feature distance (1 − cos) among five videos per prompt. Init is the work that released the causal 1.3B checkpoint the student starts from, Type is the distillation of its final stage, and Teacher is the model it is distilled from (<sup>AR</sup>: causal). <sup>†</sup>Our evaluation of the official checkpoint. Within the chunk-wise and frame-wise settings, cells are colored from dark to light: <span class="r1">best</span>, <span class="r2">second</span>, <span class="r3">third</span>, <span class="r4">the rest</span>; the AR teachers are shown in <span class="ref">gray</span> and are not ranked.</em></p>
   </section>
 
   <!-- SECTION 4: 30s LONG VIDEO ROLLOUTS -->
   <section class="content-section" id="long-results" data-section="30s Long Rollouts">
     <h2>30-Second Long-Video Generation</h2>
-    <p>We evaluate 30-second rollouts (501 frames at 16 fps, 67 autoregressive chunks) on the 128 MovieGen prompts using Deep Forcing KV-cache management. With the Causal-rCM teacher, our π-Flow student achieves both the highest aesthetic quality (<strong>62.13 AQ</strong>, <strong>67.41 IQ</strong>) and halves the 30-second imaging quality drift compared with Causal-rCM (<strong>ΔIQ −1.64 vs. −3.28</strong>). With the Causal Forcing teacher, anti-drifting guidance reduces quality degradation by <strong>+2.85 ΔIQ</strong> (−7.79 to −4.94) and <strong>+2.69 ΔAQ</strong> (−9.49 to −6.80) while maintaining high motion dynamism (82.1 DD).</p>
+    <p>We generate 30-second videos (501 frames) for the 128 MovieGen prompts of Deep Forcing, using its KV-cache management. With the Causal-rCM teacher, our π-Flow student has both higher quality than Causal-rCM (62.13 AQ and 67.41 IQ vs. 61.41 and 65.92) and half its imaging-quality drop over 30 s (ΔIQ −1.64 vs. −3.28). With the Causal Forcing teacher, it matches the high dynamic degree of Causal Forcing (82.1 vs. 81.7) but drops more in imaging quality (ΔIQ −4.94 vs. −1.44). Anti-drifting guidance is what keeps this drop in check: without it, the same student drops by −7.79 ΔIQ and −9.49 ΔAQ instead of −4.94 and −6.80.</p>
 
     <div class="video-showcase" data-video-showcase>
       <div class="v-controls">
@@ -568,121 +429,41 @@
     <p><em><strong>Effect of anti-drifting guidance on 30 s rollouts (Fig. 10):</strong> Without anti-drifting guidance, 30 s rollouts progressively wash out or oversaturate; with anti-drifting guidance, appearance and structure remain stable through 30 s.</em></p>
 
     <div class="table-scroll" tabindex="0" aria-label="30-second VBench-Long results table">
+      <!-- table:long -->
       <table>
         <thead>
-          <tr>
-            <th>Teacher Family</th>
-            <th>Method</th>
-            <th>Dynamic Degree ↑</th>
-            <th>Aesthetic Quality (AQ) ↑</th>
-            <th>Imaging Quality (IQ) ↑</th>
-            <th>ΔIQ (30s drift) ↑</th>
-            <th>ΔAQ (30s drift) ↑</th>
-          </tr>
+          <tr><th>Teacher</th><th>Method</th><th>Dynamic Degree ↑</th><th>Aesthetic (AQ) ↑</th><th>Imaging (IQ) ↑</th><th>ΔIQ over 30 s ↑</th><th>ΔAQ over 30 s ↑</th></tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Self Forcing</td>
-            <td>Self Forcing<sup>†</sup></td>
-            <td>60.8</td>
-            <td>61.18</td>
-            <td><strong>69.30</strong></td>
-            <td><strong>−0.76</strong></td>
-            <td><strong>−2.00</strong></td>
-          </tr>
-          <tr>
-            <td>Causal Forcing</td>
-            <td>Causal Forcing<sup>†</sup></td>
-            <td>81.7</td>
-            <td>58.71</td>
-            <td>68.92</td>
-            <td>−1.44</td>
-            <td>−5.59</td>
-          </tr>
-          <tr>
-            <td>Causal Forcing</td>
-            <td>Ours (π-Flow) w/o anti-drifting</td>
-            <td>—</td>
-            <td>—</td>
-            <td>—</td>
-            <td>−7.79</td>
-            <td>−9.49</td>
-          </tr>
-          <tr>
-            <td>Causal Forcing</td>
-            <td><strong>Ours (π-Flow)</strong></td>
-            <td><strong>82.1</strong></td>
-            <td>57.92</td>
-            <td>64.62</td>
-            <td><strong>−4.94 (+2.85)</strong></td>
-            <td><strong>−6.80 (+2.69)</strong></td>
-          </tr>
-          <tr>
-            <td>Causal Forcing</td>
-            <td>Ours (dCM)</td>
-            <td>49.4</td>
-            <td>54.89</td>
-            <td>62.04</td>
-            <td>−9.01</td>
-            <td>−11.56</td>
-          </tr>
-          <tr>
-            <td>Causal-rCM</td>
-            <td>Causal-rCM<sup>†</sup></td>
-            <td>65.6</td>
-            <td>61.41</td>
-            <td>65.92</td>
-            <td>−3.28</td>
-            <td>−4.06</td>
-          </tr>
-          <tr>
-            <td>Causal-rCM</td>
-            <td>Causal-rCM, TF-sCM<sup>†</sup></td>
-            <td>48.6</td>
-            <td>58.80</td>
-            <td>65.29</td>
-            <td>−3.10</td>
-            <td>−5.08</td>
-          </tr>
-          <tr>
-            <td>Causal-rCM</td>
-            <td><strong>Ours (π-Flow)</strong></td>
-            <td>41.1</td>
-            <td><strong>62.13</strong></td>
-            <td><strong>67.41</strong></td>
-            <td><strong>−1.64</strong></td>
-            <td><strong>−3.83</strong></td>
-          </tr>
-          <tr>
-            <td>Causal-rCM</td>
-            <td><strong>Ours (dCM)</strong></td>
-            <td>41.3</td>
-            <td>60.27</td>
-            <td><strong>68.25</strong></td>
-            <td><strong>−1.97</strong></td>
-            <td><strong>−4.01</strong></td>
-          </tr>
+          <tr><td>—</td><td>Self Forcing<sup>†</sup></td><td class="r4">60.8</td><td class="r3">61.18</td><td class="r1">69.30</td><td class="r1">−0.76</td><td class="r1">−2.00</td></tr>
+          <tr><td>—</td><td>Causal Forcing<sup>†</sup></td><td class="r2">81.7</td><td class="r4">58.71</td><td class="r2">68.92</td><td class="r2">−1.44</td><td class="r4">−5.59</td></tr>
+          <tr class="is-ours"><td>—</td><td class="ours">Ours (π-Flow)</td><td class="r1">82.1</td><td class="r4">57.92</td><td class="r4">64.62</td><td class="r4">−4.94</td><td class="r4">−6.80</td></tr>
+          <tr class="is-ours"><td>—</td><td class="ours">Ours (dCM)</td><td class="r4">49.4</td><td class="r4">54.89</td><td class="r4">62.04</td><td class="r4">−9.01</td><td class="r4">−11.56</td></tr>
+          <tr><td>—</td><td>Causal-rCM<sup>†</sup></td><td class="r3">65.6</td><td class="r2">61.41</td><td class="r4">65.92</td><td class="r4">−3.28</td><td class="r4">−4.06</td></tr>
+          <tr><td>—</td><td>Causal-rCM, TF-sCM<sup>†</sup></td><td class="r4">48.6</td><td class="r4">58.80</td><td class="r4">65.29</td><td class="r4">−3.10</td><td class="r4">−5.08</td></tr>
+          <tr class="is-ours"><td>—</td><td class="ours">Ours (π-Flow)</td><td class="r4">41.1</td><td class="r1">62.13</td><td class="r4">67.41</td><td class="r3">−1.64</td><td class="r2">−3.83</td></tr>
+          <tr class="is-ours"><td>—</td><td class="ours">Ours (dCM)</td><td class="r4">41.3</td><td class="r4">60.27</td><td class="r3">68.25</td><td class="r4">−1.97</td><td class="r3">−4.01</td></tr>
         </tbody>
       </table>
+      <!-- /table:long -->
     </div>
-    <p><em><strong>Table 2 &amp; Table 4:</strong> VBench-Long evaluation on 30 s videos (five-seed means across 128 MovieGen prompts). ΔIQ and ΔAQ measure the quality change from the first three 2 s clips to the last three 2 s clips (closer to 0 means less drift).</em></p>
+    <p><em><strong>Table 2:</strong> VBench-Long on 30 s videos of the chunk-wise 4-NFE students, five-seed means over 128 MovieGen prompts. Each video is split into 16 clips of about 2 s; ΔIQ and ΔAQ are the imaging and aesthetic quality of the last three clips minus those of the first three (closer to 0 means less drift). Colors follow Table 1.</em></p>
   </section>
 
   <!-- SECTION 5: DIVERSITY & ABLATIONS -->
   <section class="content-section" id="diversity" data-section="Diversity &amp; Ablations">
     <h2>Preserving Multi-Seed Diversity Without DMD</h2>
     <p>Why distill directly from the causal teacher with FlowMap objectives instead of using Distribution Matching Distillation (DMD)? Because DMD minimizes a mode-seeking reverse-KL divergence, it severely collapses sample diversity across random seeds—producing nearly identical layouts, camera angles, and object trajectories for a given prompt.</p>
-    <p>By eliminating DMD entirely and supervising self-forcing via trajectory-consistent FlowMap distillation with anti-drifting guidance, our students <strong>surpass every corresponding SF-DMD baseline in V-JEPA 2 diversity</strong> (+74% over Self Forcing and +29% over Causal Forcing) and even exceed the 64-NFE AR teacher:</p>
+    <p>By eliminating DMD entirely and supervising self-forcing via trajectory-consistent FlowMap distillation with anti-drifting guidance, our π-Flow students <strong>are more diverse than every corresponding SF-DMD student in V-JEPA 2 distance</strong> (chunk-wise: +74% over Self Forcing and +29% over Causal Forcing; frame-wise: +56% over Causal Forcing). In the chunk-wise setting they even exceed the 64-NFE AR teacher (0.0964 vs. 0.0882), though not in the frame-wise setting (0.0800 vs. 0.0944):</p>
 
-    <figure class="barstory" data-ylabel="Feature Distance (×100) ↑" data-ymin="0" data-ymax="11" data-ystep="2">
-      <div class="barstory-series" data-name="SF-DMD Baseline (Causal Forcing)" data-style="base" data-phase="DMD collapses multi-seed diversity"></div>
-      <div class="barstory-series" data-name="Ours (π-Flow, pure FlowMap)" data-style="corr" data-from="0" data-delta="percent" data-phase="Ours (π-Flow): +29% to +55% higher diversity without DMD"></div>
-      <div class="barstory-series" data-name="64-NFE AR Teacher (reference)" data-style="cfg" data-phase="Matching or surpassing the 64-NFE AR Teacher"></div>
-      <div class="barstory-group" data-name="Chunk-wise (V-JEPA 2 ×100)" data-values="7.45,9.64,8.82"></div>
-      <div class="barstory-group" data-name="Frame-wise (V-JEPA 2 ×100)" data-values="5.14,8.00,9.44"></div>
-      <div class="barstory-group" data-name="Chunk-wise (VideoMAE ×300)" data-values="5.94,8.43,7.08"></div>
+    <figure class="barstory" data-ylabel="V-JEPA 2 distance (×100) ↑" data-ymin="0" data-ymax="11" data-ystep="2">
+      <div class="barstory-series" data-name="Causal Forcing (SF-DMD)" data-style="base" data-phase="DMD collapses multi-seed diversity"></div>
+      <div class="barstory-series" data-name="Ours (π-Flow, pure FlowMap)" data-style="corr" data-from="0" data-delta="percent" data-phase="Ours (π-Flow): +29% to +56% more diverse without DMD"></div>
+      <div class="barstory-series" data-name="64-NFE AR Teacher (reference)" data-style="cfg" data-phase="Chunk-wise above the 64-NFE teacher, frame-wise below it"></div>
+      <div class="barstory-group" data-name="Chunk-wise" data-values="7.45,9.64,8.82"></div>
+      <div class="barstory-group" data-name="Frame-wise" data-values="5.14,8.00,9.44"></div>
     </figure>
-    <p><em>Mean pairwise feature cosine distance across 5 seeds per prompt over all 946 VBench prompts (higher means more diverse videos across seeds).</em></p>
+    <p><em>Mean pairwise V-JEPA 2 cosine distance (×100) among five videos per prompt, over all 946 prompts; higher means more diverse across seeds. The DMD baseline in both settings is Causal Forcing from Table 1.</em></p>
 
     <figure class="paper-figure">
       <a class="figure-link" href="assets/figures/diversity_5seeds.jpg" data-lightbox>

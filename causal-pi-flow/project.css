@@ -43,3 +43,5 @@ dialog{border:0;border-radius:4px;padding:42px 14px 14px;max-width:min(96vw,1800
   .masthead{padding:34px 16px 0}.masthead h1{font-size:27px}
   .v-grid-2,.v-grid-4{grid-template-columns:1fr}
 }
+details{margin:28px 0 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:15px 0;color:var(--muted);font-size:15px}summary{cursor:pointer;font-weight:550;color:var(--blue)}details[open] summary{margin-bottom:14px}details p{font-size:15px;max-width:76ch}details .paper-figure,details .fig-pair{margin-top:22px}
+.r1{color:#0a327a;font-weight:700}.r2{color:#2e58a3;font-weight:600}.r3{color:#537fcd}.r4{color:#7ea5ea}.ref{color:#808080}tr.is-ref td{color:#808080;font-style:italic}td.ours{color:var(--orange);font-weight:650}
