@@ -64,30 +64,28 @@
   <section class="hero">
     <div class="video-showcase" data-video-showcase>
       <div class="v-controls">
-        <div class="v-tabs" role="tablist" aria-label="30-second rollout prompts">
-          <button type="button" role="tab" aria-selected="true" data-prefix="ad_chef" data-prompt="A dynamic scene captured in the style of vibrant food photography, showcasing a chef skillfully chopping onions in a kitchen (30 s rollout, 4 NFE per chunk)">30s Chef (Fig. 2b)</button>
-          <button type="button" role="tab" aria-selected="false" data-prefix="ad_rabbit" data-prompt="A charming illustration in a watercolor style of a young white rabbit wearing glasses and reading a newspaper (30 s rollout, 4 NFE per chunk)">30s Watercolor Rabbit (Fig. 7a)</button>
-          <button type="button" role="tab" aria-selected="false" data-prefix="ad_corgi" data-prompt="A vibrant and lively vlog-style photo of a corgi in tropical Maui, showcasing the dog energetically filming itself on a sandy beach (30 s rollout, 4 NFE per chunk)">30s Maui Corgi (Fig. 7b)</button>
-        </div>
+        <p class="v-hero-label">30 s rollouts, 4 NFE per chunk, all distilled from the Causal-rCM teacher</p>
         <button type="button" class="v-sync-btn" data-sync-restart>↻ Restart in sync</button>
       </div>
       <div class="v-grid-2">
         <figure class="v-card">
-          <video src="assets/videos/ad_chef_noad.mp4" data-model="noad" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption>
-            <span>FlowMap student w/o anti-drifting guidance</span>
-            <span class="v-badge">4 NFE · ΔIQ −7.79</span>
-          </figcaption>
+          <video src="assets/videos/rcm_pandas_causal_rcm.mp4" data-model="causal_rcm" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Causal-rCM (DMD)</span><span class="v-badge">ΔIQ −3.28</span></figcaption>
+        </figure>
+        <figure class="v-card">
+          <video src="assets/videos/rcm_pandas_causal_rcm_tfscm.mp4" data-model="causal_rcm_tfscm" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Causal-rCM, TF-sCM (FlowMap)</span><span class="v-badge">ΔIQ −3.10</span></figcaption>
         </figure>
         <figure class="v-card is-ours">
-          <video src="assets/videos/ad_chef_ours.mp4" data-model="ours" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption>
-            <span>Ours (π-Flow + Motion-Aware &amp; Anti-Drifting Guidance)</span>
-            <span class="v-badge">4 NFE · ΔIQ −4.94</span>
-          </figcaption>
+          <video src="assets/videos/rcm_pandas_ours.mp4" data-model="ours" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Ours (π-Flow)</span><span class="v-badge">ΔIQ −1.64</span></figcaption>
+        </figure>
+        <figure class="v-card is-ours">
+          <video src="assets/videos/rcm_pandas_ours_dcm.mp4" data-model="ours_dcm" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Ours (dCM)</span><span class="v-badge">ΔIQ −1.97</span></figcaption>
         </figure>
       </div>
-      <p class="v-prompt-bar" data-prompt-text><strong>Prompt:</strong> &ldquo;A dynamic scene captured in the style of vibrant food photography, showcasing a chef skillfully chopping onions in a kitchen (30 s rollout, 4 NFE per chunk)&rdquo;</p>
+      <p class="v-prompt-bar" data-prompt-text><strong>Prompt:</strong> &ldquo;A high-resolution digital artwork in a realistic botanical style, showcasing a petri dish where a miniature bamboo forest thrives, complete with tiny red pandas running around.&rdquo;</p>
     </div>
 
     <section class="project-abstract" aria-labelledby="abstract-heading">
@@ -104,33 +102,13 @@
     <!-- mstep:pipeline -->
     <figure class="mstep" data-src="assets/motion/pipeline-steps.mp4" data-poster="assets/motion/pipeline-steps-poster.jpg" aria-label="How a FlowMap student is distilled from an autoregressive teacher, step by step.">
       <div class="mstep-words">
-        <div class="mstep-beat" data-from="0" data-to="4">
-          <p class="mstep-title"><span class="mstep-n">1</span>Start from a real video</p>
-          <p class="mstep-line">In Stage 1 (teacher forcing), the history <i>h</i><sub><i>i</i></sub> = <i>x</i><sub>0</sub><sup>&lt;<i>i</i></sup> is real video, stored in the KV cache.</p>
+        <div class="mstep-beat" data-from="0" data-to="7">
+          <p class="mstep-title"><span class="mstep-n">1</span>Stage 1: teacher forcing</p>
+          <p class="mstep-line">The student reads real video <i>x</i><sub>0</sub><sup>&lt;<i>i</i></sup> as history through the KV cache and, with its flow map, jumps from the noisy chunk <i>x</i><sub><i>t</i></sub><sup><i>i</i></sup> to a clean chunk. The guided teacher's velocity <i>v</i><sup>*</sup> along the jump is the target; this is the only place the teacher enters the loss.</p>
         </div>
-        <div class="mstep-beat" data-from="4" data-to="7.5">
-          <p class="mstep-title"><span class="mstep-n">2</span>Noise the next chunk</p>
-          <p class="mstep-line">The next chunk is mixed with noise: <i>x</i><sub><i>s</i></sub><sup><i>i</i></sup> = (1 − <i>s</i>) <i>x</i><sub>0</sub><sup><i>i</i></sup> + <i>s</i> ε.</p>
-        </div>
-        <div class="mstep-beat" data-from="7.5" data-to="12">
-          <p class="mstep-title"><span class="mstep-n">3</span>The student jumps</p>
-          <p class="mstep-line">Reading the history, the FlowMap student jumps from <i>x</i><sub><i>s</i></sub><sup><i>i</i></sup> to a less noisy state <i>x̂</i><sub><i>t</i></sub><sup><i>i</i></sup> in one step.</p>
-        </div>
-        <div class="mstep-beat" data-from="12" data-to="17">
-          <p class="mstep-title"><span class="mstep-n">4</span>The teacher grades the jump</p>
-          <p class="mstep-line">At the landing point, the guided teacher's velocity <i>v</i><sup>*</sup> is the target. This is the only place the teacher enters the loss.</p>
-        </div>
-        <div class="mstep-beat" data-from="17" data-to="21.5">
-          <p class="mstep-title"><span class="mstep-n">5</span>At test time there is no real video</p>
-          <p class="mstep-line">In Stage 2 (self-forcing), the history is the student's own rollout <i>h</i><sub><i>i</i></sub> = <i>x̂</i><sub>0</sub><sup>&lt;<i>i</i></sup>, flaws included.</p>
-        </div>
-        <div class="mstep-beat" data-from="21.5" data-to="25.5">
-          <p class="mstep-title"><span class="mstep-n">6</span>Same jump, same teacher</p>
-          <p class="mstep-line">The objective does not change: the student jumps, and the teacher, now reading the rollout, gives the target.</p>
-        </div>
-        <div class="mstep-beat" data-from="25.5" data-to="30">
-          <p class="mstep-title"><span class="mstep-n">7</span>Each chunk extends the history</p>
-          <p class="mstep-line">After 4 steps, the finished chunk is appended to the KV cache and becomes history for the next one.</p>
+        <div class="mstep-beat" data-from="7" data-to="14">
+          <p class="mstep-title"><span class="mstep-n">2</span>Stage 2: self-forcing</p>
+          <p class="mstep-line">Same student, loss and teacher, but the history is now the student's own rollout <i>x̂</i><sub>0</sub><sup>&lt;<i>i</i></sup>, flaws included, as at test time. Each finished chunk is appended to the cache and becomes history for the next.</p>
         </div>
       </div>
     </figure>
@@ -185,19 +163,7 @@
     <details>
       <summary>Analysis: why doesn't CFG fix Stage 1?</summary>
       <p>We measure how smoothly the guided teacher's velocity varies between nearby states with the normalized sensitivity <i>C</i><sub><i>v</i></sub>; a 4-step student can follow a smooth (low-<i>C</i><sub><i>v</i></sub>) field. In the first chunk, which has no history, CFG raises the smoothness 1/<i>C</i><sub><i>v</i></sub> by up to 7.7%. In the second chunk it raises it by at most 0.3% and lowers it as guidance grows.</p>
-      <p>The reason is that the history already fixes the static background and largely satisfies the text prompt, so the remaining uncertainty sits in moving regions. A single teacher step from noise already gives a sharp background and a blurred moving player (left). CFG only strengthens the text condition and cannot steer frame-to-frame motion; uniform skip-layer guidance perturbs static and moving regions alike and saturates at +2.5% (right).</p>
-      <div class="fig-pair">
-        <figure class="paper-figure">
-          <a class="figure-link" href="assets/figures/one-step-teacher.png" data-lightbox>
-            <img loading="lazy" decoding="async" src="assets/figures/one-step-teacher.png" alt="One-step teacher prediction given a clean history: the background is already sharp while the moving golfer is blurred.">
-          </a>
-        </figure>
-        <figure class="paper-figure">
-          <a class="figure-link" href="assets/figures/cv_guidance.png" data-lightbox>
-            <img loading="lazy" decoding="async" src="assets/figures/cv_guidance.png" alt="Velocity smoothness gain 1/Cv under CFG, fixed skip-layer guidance and motion-aware guidance in the first and second chunk.">
-          </a>
-        </figure>
-      </div>
+      <p>The reason is that the history already fixes the static background and largely satisfies the text prompt, so the remaining uncertainty sits in moving regions. A single teacher step from noise already gives a sharp background and a blurred moving person. CFG only strengthens the text condition and cannot steer frame-to-frame motion; uniform skip-layer guidance perturbs static and moving regions alike and saturates at +2.5%.</p>
     </details>
   </section>
 
@@ -244,25 +210,8 @@
 
     <details>
       <summary>Analysis: where the uncertainty goes, and what it buys</summary>
-      <p>The uncertainty head is a single Transformer layer on detached features of block ℓ = 10 of the frozen teacher, trained for 500 updates with a Gaussian negative log-likelihood on the teacher's flow-matching residual. Its prediction <i>û</i><sub><i>p</i></sub> is high everywhere in the first frame, which has no history, and concentrates on the moving people afterwards:</p>
-      <figure class="paper-figure">
-        <a class="figure-link" href="assets/figures/uncertainty_strip.png" data-lightbox>
-          <img loading="lazy" decoding="async" src="assets/figures/uncertainty_strip.png" alt="Predicted uncertainty: high everywhere in frame 0, concentrated on the moving people in frames 20 to 80.">
-        </a>
-      </figure>
-      <p>The prediction is smoothed with a 3×3 mean pool and normalized per chunk index and noise level into a skip strength <i>u</i><sub><i>p</i></sub> = max(0, <i>ū</i> + σ<sub><i>u</i></sub>(<i>û</i><sub><i>p</i></sub> − μ)/σ), with <i>ū</i> = σ<sub><i>u</i></sub> = 0.5. In the second chunk, motion-aware guidance raises whole-chunk smoothness 1/<i>C</i><sub><i>v</i></sub> by +3.4% (CFG: at most 0.3%; uniform skip-layer guidance: +2.5%). The gain grows with the predicted uncertainty and reaches +16.4% over CFG on the most uncertain tenth of the patches (right).</p>
-      <div class="fig-pair">
-        <figure class="paper-figure">
-          <a class="figure-link" href="assets/figures/motion-aware-guidance.png" data-lightbox>
-            <img loading="lazy" decoding="async" src="assets/figures/motion-aware-guidance.png" alt="Motion-aware skip-layer guidance architecture.">
-          </a>
-        </figure>
-        <figure class="paper-figure">
-          <a class="figure-link" href="assets/figures/cv_deciles.png" data-lightbox>
-            <img loading="lazy" decoding="async" src="assets/figures/cv_deciles.png" alt="Local velocity smoothness gain over CFG across uncertainty deciles D1 to D10.">
-          </a>
-        </figure>
-      </div>
+      <p>The uncertainty head is a single Transformer layer on detached features of block ℓ = 10 of the frozen teacher, trained for 500 updates with a Gaussian negative log-likelihood on the teacher's flow-matching residual. Its prediction <i>û</i><sub><i>p</i></sub> is high everywhere in the first frame, which has no history, and concentrates on the moving people afterwards.</p>
+      <p>The prediction is smoothed with a 3×3 mean pool and normalized per chunk index and noise level into a skip strength <i>u</i><sub><i>p</i></sub> = max(0, <i>ū</i> + σ<sub><i>u</i></sub>(<i>û</i><sub><i>p</i></sub> − μ)/σ), with <i>ū</i> = σ<sub><i>u</i></sub> = 0.5. In the second chunk, motion-aware guidance raises whole-chunk smoothness 1/<i>C</i><sub><i>v</i></sub> by +3.4% (CFG: at most 0.3%; uniform skip-layer guidance: +2.5%). The gain grows with the predicted uncertainty and reaches +16.4% over CFG on the most uncertain tenth of the patches.</p>
     </details>
 
     <h3 id="stage2-antidrift">Stage 2: Anti-drifting guidance</h3>
@@ -347,13 +296,6 @@
       <p class="v-prompt-bar" data-prompt-text><strong>Prompt:</strong> &ldquo;A sleek black motorcycle cruising along a scenic coastal highway during sunset&rdquo;</p>
     </div>
 
-    <figure class="paper-figure">
-      <a class="figure-link" href="assets/figures/qualitative_5s.jpg" data-lightbox>
-        <img loading="lazy" decoding="async" src="assets/figures/qualitative_5s.jpg" alt="Qualitative comparison of 4-NFE chunk-wise students at 0, 1.7, 3.4, and 5 s across four VBench motion prompts.">
-      </a>
-    </figure>
-    <p><em><strong>Qualitative comparison of 4-NFE chunk-wise students (Fig. 8):</strong> Frames at 0, 1.7, 3.4, and 5 s from Self Forcing, Causal Forcing, Ours (π-Flow), and Ours (dCM) with the Causal Forcing teacher for the same seed. Click the figure to expand.</em></p>
-
     <h3 id="vbench-barstory">Both guidance mechanisms contribute +3.15 VBench over standard CFG</h3>
     <p>Starting from a naive CFG-only π-Flow student (81.61 VBench), adding motion-aware skip-layer guidance raises VBench to <strong>84.35</strong> (+2.74 points), and combining it with anti-drifting guidance in Stage 2 reaches <strong>84.76</strong> (+3.15 points)—surpassing both the 64-NFE causal teacher (84.46) and DMD-based Causal Forcing (84.74) without any DMD stage:</p>
 
@@ -403,50 +345,39 @@
   <!-- SECTION 4: 30s LONG VIDEO ROLLOUTS -->
   <section class="content-section" id="long-results" data-section="30s Long Rollouts">
     <h2>30-Second Long-Video Generation</h2>
-    <p>We generate 30-second videos (501 frames) for the 128 MovieGen prompts of Deep Forcing, using its KV-cache management. With the Causal-rCM teacher, our π-Flow student has both higher quality than Causal-rCM (62.13 AQ and 67.41 IQ vs. 61.41 and 65.92) and half its imaging-quality drop over 30 s (ΔIQ −1.64 vs. −3.28). With the Causal Forcing teacher, it matches the high dynamic degree of Causal Forcing (82.1 vs. 81.7) but drops more in imaging quality (ΔIQ −4.94 vs. −1.44). Anti-drifting guidance is what keeps this drop in check: without it, the same student drops by −7.79 ΔIQ and −9.49 ΔAQ instead of −4.94 and −6.80.</p>
+    <p>We generate 30-second videos (501 frames) for the 128 MovieGen prompts of Deep Forcing, using its KV-cache management. With the Causal-rCM teacher, our students drift the least: imaging quality drops by −1.64 (π-Flow) and −1.97 (dCM) over 30 s, against −3.28 for Causal-rCM (DMD) and −3.10 for its FlowMap variant TF-sCM. Our π-Flow student also has the highest aesthetic quality (62.13 vs. 61.41 for Causal-rCM) and higher imaging quality (67.41 vs. 65.92).</p>
 
     <div class="video-showcase" data-video-showcase>
       <div class="v-controls">
-        <div class="v-tabs" role="tablist" aria-label="30-second 4-model comparison prompts">
-          <button type="button" role="tab" aria-selected="true" data-prefix="long_a" data-prompt="A cinematic photograph in the style of a warm family moment, capturing a grandmother with neatly combed grey hair standing behind a colorful birthday cake (30 s rollout)">30s Grandmother &amp; Cake (Fig. 9a)</button>
-          <button type="button" role="tab" aria-selected="false" data-prefix="long_b" data-prompt="A vibrant and lively illustration in a cartoon style of a panda playing the guitar (30 s rollout)">30s Guitar Panda (Fig. 9b)</button>
+        <div class="v-tabs" role="tablist" aria-label="30-second rollout prompts">
+          <button type="button" role="tab" aria-selected="true" data-prefix="rcm_pandas" data-prompt="A high-resolution digital artwork in a realistic botanical style, showcasing a petri dish where a miniature bamboo forest thrives, complete with tiny red pandas running around.">Red Pandas in a Petri Dish</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="rcm_western" data-prompt="A cinematic scene from a classic western movie, featuring a rugged man riding a powerful horse through the vast Gobi Desert at sunset.">Western Rider</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="rcm_puppies" data-prompt="A winter scene in a snowy forest, where a litter of playful golden retriever puppies emerge from the snow.">Puppies in the Snow</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="rcm_cloak" data-prompt="An aerial view shot of a cloaked figure soaring through the sky amidst towering skyscrapers.">Cloaked Flyer</button>
         </div>
         <button type="button" class="v-sync-btn" data-sync-restart>↻ Restart in sync</button>
       </div>
       <div class="v-grid-4">
         <figure class="v-card">
-          <video src="assets/videos/long_a_self_forcing.mp4" data-model="self_forcing" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption><span>Self Forcing</span><span class="v-badge">30 s · 4 NFE</span></figcaption>
+          <video src="assets/videos/rcm_pandas_causal_rcm.mp4" data-model="causal_rcm" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Causal-rCM (DMD)</span><span class="v-badge">ΔIQ −3.28</span></figcaption>
         </figure>
         <figure class="v-card">
-          <video src="assets/videos/long_a_causal_forcing.mp4" data-model="causal_forcing" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption><span>Causal Forcing</span><span class="v-badge">30 s · 4 NFE</span></figcaption>
+          <video src="assets/videos/rcm_pandas_causal_rcm_tfscm.mp4" data-model="causal_rcm_tfscm" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Causal-rCM, TF-sCM</span><span class="v-badge">ΔIQ −3.10</span></figcaption>
         </figure>
         <figure class="v-card is-ours">
-          <video src="assets/videos/long_a_ours.mp4" data-model="ours" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption><span>Ours (π-Flow)</span><span class="v-badge">30 s · 4 NFE</span></figcaption>
+          <video src="assets/videos/rcm_pandas_ours.mp4" data-model="ours" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Ours (π-Flow)</span><span class="v-badge">ΔIQ −1.64</span></figcaption>
         </figure>
         <figure class="v-card is-ours">
-          <video src="assets/videos/long_a_ours_dcm.mp4" data-model="ours_dcm" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption><span>Ours (dCM)</span><span class="v-badge">30 s · 4 NFE</span></figcaption>
+          <video src="assets/videos/rcm_pandas_ours_dcm.mp4" data-model="ours_dcm" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Ours (dCM)</span><span class="v-badge">ΔIQ −1.97</span></figcaption>
         </figure>
       </div>
-      <p class="v-prompt-bar" data-prompt-text><strong>Prompt:</strong> &ldquo;A cinematic photograph in the style of a warm family moment, capturing a grandmother with neatly combed grey hair standing behind a colorful birthday cake (30 s rollout)&rdquo;</p>
+      <p class="v-prompt-bar" data-prompt-text><strong>Prompt:</strong> &ldquo;A high-resolution digital artwork in a realistic botanical style, showcasing a petri dish where a miniature bamboo forest thrives, complete with tiny red pandas running around.&rdquo;</p>
     </div>
-
-    <figure class="paper-figure">
-      <a class="figure-link" href="assets/figures/longvideo_30s.jpg" data-lightbox>
-        <img loading="lazy" decoding="async" src="assets/figures/longvideo_30s.jpg" alt="30-second video generation comparison at 0, 10, 20, and 30 s across Self Forcing, Causal Forcing, Ours (pi-Flow), and Ours (dCM).">
-      </a>
-    </figure>
-    <p><em><strong>30 s generation across models (Fig. 9):</strong> Frames at 0, 10, 20, and 30 s generated with Deep Forcing from the same prompt and seed.</em></p>
-
-    <figure class="paper-figure">
-      <a class="figure-link" href="assets/figures/antidrift_30s.jpg" data-lightbox>
-        <img loading="lazy" decoding="async" src="assets/figures/antidrift_30s.jpg" alt="30-second rollouts without and with anti-drifting guidance on the watercolor rabbit and Maui corgi prompts.">
-      </a>
-    </figure>
-    <p><em><strong>Effect of anti-drifting guidance on 30 s rollouts (Fig. 10):</strong> Without anti-drifting guidance, 30 s rollouts progressively wash out or oversaturate; with anti-drifting guidance, appearance and structure remain stable through 30 s.</em></p>
+    <p><em>All four students are distilled from the Causal-rCM teacher and sample each chunk in 4 NFE; seed 0, generated with Deep Forcing. The badges are the dataset-level ΔIQ from Table 2.</em></p>
 
     <div class="table-scroll" tabindex="0" aria-label="30-second VBench-Long results table">
       <!-- table:long -->
@@ -484,13 +415,6 @@
       <div class="barstory-group" data-name="Frame-wise" data-values="5.14,8.00,9.44"></div>
     </figure>
     <p><em>Mean pairwise V-JEPA 2 cosine distance (×100) among five videos per prompt, over all 946 prompts; higher means more diverse across seeds. The DMD baseline in both settings is Causal Forcing from Table 1.</em></p>
-
-    <figure class="paper-figure">
-      <a class="figure-link" href="assets/figures/diversity_5seeds.jpg" data-lightbox>
-        <img loading="lazy" decoding="async" src="assets/figures/diversity_5seeds.jpg" alt="Five videos per prompt (seeds 0-4) from Self Forcing, Causal Forcing, and Ours (pi-Flow) for 'A green bicycle' and 'A bear hunting for prey'.">
-      </a>
-    </figure>
-    <p><em><strong>Five seeds per prompt at t = 2.5 s (Fig. 11):</strong> Self Forcing and Causal Forcing (both trained with DMD) generate nearly identical bicycle orientations and bear poses across seeds 0–4, whereas Ours (π-Flow) produces diverse viewpoints, scales, and environments.</em></p>
 
     <h3 id="ablation-studies">Ablation Studies</h3>
     <p>We isolate the contribution of each guidance component, compare motion-aware skip-layer guidance against uniform fixed-strength skip-layer guidance in Stage 1, and vary the online drift model update frequency <i>n</i> in Stage 2:</p>
