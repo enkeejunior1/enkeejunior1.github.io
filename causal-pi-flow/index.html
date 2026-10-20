@@ -143,35 +143,39 @@
     <figure class="mstep" data-src="assets/motion/failure-steps.mp4" data-poster="assets/motion/failure-steps-poster.jpg" aria-label="The two failure modes of autoregressive FlowMap distillation, step by step.">
       <div class="mstep-words">
         <div class="mstep-beat" data-from="0" data-to="4.5">
-          <p class="mstep-title"><span class="mstep-n">1</span>The history already fixes the background</p>
-          <p class="mstep-line">Given a real history, the static background is decided: nearby noise samples all denoise to the same pixels.</p>
+          <p class="mstep-title"><span class="mstep-n">1</span>Where is the teacher unsure?</p>
+          <p class="mstep-line">Given a real history, the teacher's uncertainty about the next chunk is low on the background and high on the moving people.</p>
         </div>
-        <div class="mstep-beat" data-from="4.5" data-to="9.5">
-          <p class="mstep-title"><span class="mstep-n">2</span>Motion is still open</p>
-          <p class="mstep-line">For the moving subject, nearby noise samples land on different poses. Standard CFG cannot calm this; it only strengthens a text prompt the history already satisfies.</p>
+        <div class="mstep-beat" data-from="4.5" data-to="8.5">
+          <p class="mstep-title"><span class="mstep-n">2</span>Certain regions have one answer</p>
+          <p class="mstep-line">Where the teacher is certain, nearby noise samples all denoise to the same output, so its flow is smooth.</p>
         </div>
-        <div class="mstep-beat" data-from="9.5" data-to="14.5">
-          <p class="mstep-title"><span class="mstep-n">3</span>A 4-step student lands in between</p>
+        <div class="mstep-beat" data-from="8.5" data-to="14">
+          <p class="mstep-title"><span class="mstep-n">3</span>Uncertain regions have many</p>
+          <p class="mstep-line">Where it is uncertain, nearby noise samples land on different poses, so the flow changes sharply. CFG cannot help: it only strengthens the text prompt, which the history already satisfies.</p>
+        </div>
+        <div class="mstep-beat" data-from="14" data-to="19">
+          <p class="mstep-title"><span class="mstep-n">4</span>A 4-step student lands in between</p>
           <p class="mstep-line">Four large jumps cannot follow trajectories that split apart, so the student lands between the poses: sharp background, blurred motion.</p>
         </div>
-        <div class="mstep-beat" data-from="14.5" data-to="19.5">
-          <p class="mstep-title"><span class="mstep-n">4</span>What it looks like</p>
+        <div class="mstep-beat" data-from="19" data-to="23.5">
+          <p class="mstep-title"><span class="mstep-n">5</span>What it looks like</p>
           <p class="mstep-line">A Stage-1 student distilled with CFG: the gym stays sharp while the runner smears and dissolves.</p>
         </div>
-        <div class="mstep-beat" data-from="19.5" data-to="23.5">
-          <p class="mstep-title"><span class="mstep-n">5</span>The teacher only saw clean histories</p>
-          <p class="mstep-line">The autoregressive teacher was trained on real videos, the shaded region.</p>
+        <div class="mstep-beat" data-from="23.5" data-to="28.5">
+          <p class="mstep-title"><span class="mstep-n">6</span>The teacher only saw real videos</p>
+          <p class="mstep-line">The second failure happens across chunks. The shading marks real videos, on which the teacher was trained; <i>x</i><sup>1</sup> → <i>x</i><sup>2</sup> → <i>x</i><sup>3</sup> is a real chunk-to-chunk path.</p>
         </div>
-        <div class="mstep-beat" data-from="23.5" data-to="28">
-          <p class="mstep-title"><span class="mstep-n">6</span>The student's rollout drifts</p>
-          <p class="mstep-line">In Stage 2, the student's small errors accumulate from chunk to chunk, and its own history leaves that region.</p>
+        <div class="mstep-beat" data-from="28.5" data-to="33">
+          <p class="mstep-title"><span class="mstep-n">7</span>The student's rollout drifts</p>
+          <p class="mstep-line">In Stage 2, small errors accumulate, and the student's own chunks <i>x̂</i><sup>2</sup>, <i>x̂</i><sup>3</sup> leave the shaded region.</p>
         </div>
-        <div class="mstep-beat" data-from="28" data-to="33.5">
-          <p class="mstep-title"><span class="mstep-n">7</span>The teacher continues the drift</p>
-          <p class="mstep-line">Given a drifted history, the teacher <i>v</i><sub>ϕ</sub> continues parallel to the data and keeps the offset. Matching it preserves the error instead of repairing it.</p>
+        <div class="mstep-beat" data-from="33" data-to="38.5">
+          <p class="mstep-title"><span class="mstep-n">8</span>The teacher keeps the offset</p>
+          <p class="mstep-line">From the drifted <i>x̂</i><sup>2</sup>, the teacher <i>v</i><sub>ϕ</sub> continues parallel to the real path instead of returning to it. Matching it preserves the error.</p>
         </div>
-        <div class="mstep-beat" data-from="33.5" data-to="38.5">
-          <p class="mstep-title"><span class="mstep-n">8</span>What it looks like</p>
+        <div class="mstep-beat" data-from="38.5" data-to="43.5">
+          <p class="mstep-title"><span class="mstep-n">9</span>What it looks like</p>
           <p class="mstep-line">A student self-forced against the plain teacher: artifacts pile up over a 30 s rollout.</p>
         </div>
       </div>
@@ -212,18 +216,26 @@
         </div>
         <div class="mstep-beat" data-from="4" data-to="9">
           <p class="mstep-title"><span class="mstep-n">2</span>Guidance pushes away from a weaker branch</p>
-          <p class="mstep-line">The guided target <i>v</i><sup>*</sup> extrapolates from a weaker branch <i>v</i><sub>ϕ</sub><sup>−</sup>. With CFG, the weaker branch only swaps in a negative prompt.</p>
+          <p class="mstep-line">The guided target <i>v</i><sup>*</sup> extrapolates away from a weaker branch <i>v</i><sub>ϕ</sub><sup>−</sup>. With CFG, the weaker branch only swaps in a negative prompt.</p>
         </div>
         <div class="mstep-beat" data-from="9" data-to="14">
           <p class="mstep-title"><span class="mstep-n">3</span>Find where the teacher is unsure</p>
-          <p class="mstep-line">A small head on detached features of block ℓ predicts each patch's uncertainty <i>û</i><sub><i>p</i></sub>. Once a history exists, it lights up the moving subject.</p>
+          <p class="mstep-line">A small head on detached features of block ℓ predicts each patch's uncertainty <i>û</i><sub><i>p</i></sub>. Once a history exists, it lights up the moving people.</p>
         </div>
-        <div class="mstep-beat" data-from="14" data-to="19.5">
-          <p class="mstep-title"><span class="mstep-n">4</span>Weaken the teacher only there</p>
-          <p class="mstep-line">In the weaker branch, block ℓ is skipped patch by patch with strength <i>u</i><sub><i>p</i></sub>, so guidance acts on moving patches and leaves the settled background alone.</p>
+        <div class="mstep-beat" data-from="14" data-to="18.5">
+          <p class="mstep-title"><span class="mstep-n">4</span>Inside block ℓ of the weaker branch</p>
+          <p class="mstep-line">Each patch token can go through block ℓ or skip it. With plain CFG, every patch goes through.</p>
         </div>
-        <div class="mstep-beat" data-from="19.5" data-to="24.5">
-          <p class="mstep-title"><span class="mstep-n">5</span>Sharp motion in 4 steps</p>
+        <div class="mstep-beat" data-from="18.5" data-to="23">
+          <p class="mstep-title"><span class="mstep-n">5</span>Skipping everywhere</p>
+          <p class="mstep-line">Standard skip-layer guidance skips the block equally for every patch, so the already settled background is perturbed too.</p>
+        </div>
+        <div class="mstep-beat" data-from="23" data-to="28.5">
+          <p class="mstep-title"><span class="mstep-n">6</span>Skipping where the teacher is unsure</p>
+          <p class="mstep-line">We set each patch's skip strength from its uncertainty, <i>u</i><sub><i>p</i></sub>: the moving people skip the block, while the background passes through unchanged. Guidance now acts on motion.</p>
+        </div>
+        <div class="mstep-beat" data-from="28.5" data-to="33.5">
+          <p class="mstep-title"><span class="mstep-n">7</span>Sharp motion in 4 steps</p>
           <p class="mstep-line">Same prompt and noise after Stage 1: with motion-aware guidance, the runner stays sharp.</p>
         </div>
       </div>
@@ -259,26 +271,34 @@
       <div class="mstep-words">
         <div class="mstep-beat" data-from="0" data-to="4">
           <p class="mstep-title"><span class="mstep-n">1</span>The teacher keeps the offset</p>
-          <p class="mstep-line">From a drifted history, the teacher <i>v</i><sub>ϕ</sub> continues parallel to the data.</p>
+          <p class="mstep-line">From the student's drifted chunk <i>x̂</i><sup>2</sup>, the teacher <i>v</i><sub>ϕ</sub> continues parallel to the real path.</p>
         </div>
-        <div class="mstep-beat" data-from="4" data-to="9">
-          <p class="mstep-title"><span class="mstep-n">2</span>Model the drift itself</p>
-          <p class="mstep-line">A drift model <i>v</i><sub>ψ</sub>, a copy of the teacher, is fit online to the student's own chunks, so it follows the student further out.</p>
+        <div class="mstep-beat" data-from="4" data-to="8">
+          <p class="mstep-title"><span class="mstep-n">2</span>The student's own chunks</p>
+          <p class="mstep-line">During self-forcing, the student keeps producing chunks, and they carry its drift.</p>
         </div>
-        <div class="mstep-beat" data-from="9" data-to="13.5">
-          <p class="mstep-title"><span class="mstep-n">3</span>Their difference points back</p>
-          <p class="mstep-line">Since <i>v</i><sub>ϕ</sub> runs parallel and <i>v</i><sub>ψ</sub> drifts out, <i>v</i><sub>ϕ</sub> − <i>v</i><sub>ψ</sub> points back toward the data.</p>
+        <div class="mstep-beat" data-from="8" data-to="13.5">
+          <p class="mstep-title"><span class="mstep-n">3</span>Fit a drift model to them</p>
+          <p class="mstep-line">A drift model <i>v</i><sub>ψ</sub>, starting as a copy of the teacher, is trained with flow matching on these chunks, 5 updates per student step. No gradient flows back to the student.</p>
         </div>
-        <div class="mstep-beat" data-from="13.5" data-to="19">
-          <p class="mstep-title"><span class="mstep-n">4</span>A target that repairs drift</p>
-          <p class="mstep-line">Adding (γ − 1)(<i>v</i><sub>ϕ</sub> − <i>v</i><sub>ψ</sub>) to the guided teacher gives a target <i>v</i><sup>*</sup> that steers each chunk back. Only the target changes.</p>
+        <div class="mstep-beat" data-from="13.5" data-to="18">
+          <p class="mstep-title"><span class="mstep-n">4</span>The drift model follows the student</p>
+          <p class="mstep-line">Having learned the student's chunks, <i>v</i><sub>ψ</sub> points where the student drifts.</p>
         </div>
-        <div class="mstep-beat" data-from="19" data-to="24">
-          <p class="mstep-title"><span class="mstep-n">5</span>On one chunk</p>
+        <div class="mstep-beat" data-from="18" data-to="22.5">
+          <p class="mstep-title"><span class="mstep-n">5</span>Their difference points back</p>
+          <p class="mstep-line">The teacher minus the drift model, <i>v</i><sub>ϕ</sub> − <i>v</i><sub>ψ</sub>, points from the drift back toward the real path.</p>
+        </div>
+        <div class="mstep-beat" data-from="22.5" data-to="28">
+          <p class="mstep-title"><span class="mstep-n">6</span>Add it to the target</p>
+          <p class="mstep-line">Adding (γ − 1)(<i>v</i><sub>ϕ</sub> − <i>v</i><sub>ψ</sub>) to the guided teacher gives the anti-drifting target <i>v</i><sup>*</sup>, which lands back near <i>x</i><sup>3</sup>. Only the target changes.</p>
+        </div>
+        <div class="mstep-beat" data-from="28" data-to="33">
+          <p class="mstep-title"><span class="mstep-n">7</span>On one chunk</p>
           <p class="mstep-line">Given the same drifted rollout, the plain teacher's next chunk keeps the noise; the anti-drifting target's is cleaner.</p>
         </div>
-        <div class="mstep-beat" data-from="24" data-to="29">
-          <p class="mstep-title"><span class="mstep-n">6</span>Over 30 seconds</p>
+        <div class="mstep-beat" data-from="33" data-to="38">
+          <p class="mstep-title"><span class="mstep-n">8</span>Over 30 seconds</p>
           <p class="mstep-line">A student trained against this target keeps the 30 s rollout stable.</p>
         </div>
       </div>
