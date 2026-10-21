@@ -1,0 +1,23 @@
+/* Animated training curves (assets/motion/linestory.js). Uses the page's --blue, --ink, --muted, --line. */
+.linestory{position:relative;max-width:860px;margin:26px auto 14px}
+.linestory .linestory-fallback{width:100%}
+.linestory.is-live .linestory-fallback{display:none}
+.linestory-svg{display:block;width:100%;height:auto;font-family:var(--sans,Inter,Arial,sans-serif)}
+.ls-grid{stroke:var(--line,#dce5ef);stroke-width:1}
+.ls-axis-line{stroke:#8a96a3;stroke-width:1.2}
+.ls-tick{font-size:14px;fill:var(--muted,#5c6a7b)}
+.ls-axis{font-size:15px;fill:var(--ink,#121b29)}
+.ls-phase{font-size:20px;font-weight:650;fill:var(--ink,#121b29)}
+.ls-legend{font-size:14px;fill:var(--ink,#121b29)}
+.ls-cursor{stroke:#b9c3ce;stroke-width:1;stroke-dasharray:4 4}
+.ls-raw{fill:none;stroke-width:1;opacity:.22}
+.ls-line{fill:none;stroke-width:3.2;stroke-linejoin:round;stroke-linecap:round}
+.ls-raw.ls-fresh,.ls-line.ls-fresh{stroke:#7f8b99}
+.ls-raw.ls-fixed,.ls-line.ls-fixed{stroke:var(--blue,#2563a6)}
+.ls-head{stroke:#fff;stroke-width:2}
+.ls-head.ls-fresh{fill:#7f8b99}
+.ls-head.ls-fixed{fill:var(--blue,#2563a6)}
+.ls-val{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+.ls-fresh-t{fill:#6b7684}
+.ls-fixed-t{fill:var(--blue,#2563a6)}
+@media(max-width:650px){.ls-phase{font-size:24px}.ls-val{font-size:19px}.ls-tick,.ls-legend{font-size:17px}}

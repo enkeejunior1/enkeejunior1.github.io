@@ -12,11 +12,12 @@
 .bs-base{fill:#c9d2dc}
 .bs-corr{fill:var(--blue,#2563a6)}
 .bs-cfg{fill:#7f8b99}
+.bs-dmd{fill:#a9b4c0}
 .bs-corr2{fill:#173f6b}
 .bs-mark{stroke:#fff;stroke-width:2;stroke-dasharray:5 4}
 .bs-ghost{fill:rgba(37,99,166,.06);stroke:var(--blue,#2563a6);stroke-width:1.6;stroke-dasharray:5 4}
 .bs-val{font-size:14px;font-variant-numeric:tabular-nums;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
-.bs-base-t,.bs-cfg-t{fill:var(--muted,#5c6a7b)}
+.bs-base-t,.bs-cfg-t,.bs-dmd-t{fill:var(--muted,#5c6a7b)}
 .bs-corr-t{fill:var(--blue,#2563a6);font-size:17px;font-weight:700}
 .bs-corr2-t{fill:#173f6b;font-size:17px;font-weight:700}
 .bs-delta{font-size:16px;font-weight:700;fill:var(--blue,#2563a6);paint-order:stroke;stroke:#fff;stroke-width:5px}
