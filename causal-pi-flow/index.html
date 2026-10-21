@@ -122,25 +122,25 @@
     <p>In both stages, the student is only as good as the target <i>v</i><sup>*</sup> it matches. With the standard CFG target, each stage fails in its own way:</p>
 
     <h3 id="tf-failure">Analysis: TF Failure</h3>
-    <p>Teacher forcing gives the student a clean, real history, yet motion still blurs.</p>
+    <p>After the first chunk, the history fixes the scene. The teacher's velocity then changes sharply on the motion, and CFG can no longer smooth it.</p>
     <!-- mstep:tf-failure -->
     <figure class="mstep" data-src="assets/motion/tf-failure-steps.mp4" data-poster="assets/motion/tf-failure-steps-poster.jpg" aria-label="Why teacher forcing fails on motion, step by step.">
       <div class="mstep-words">
-        <div class="mstep-beat" data-from="0" data-to="3.5">
-          <p class="mstep-title"><span class="mstep-n">1</span>Where is the teacher unsure?</p>
-          <p class="mstep-line">Even with a real history, the teacher is unsure about the next chunk. It is certain on the background and unsure only on the moving people.</p>
+        <div class="mstep-beat" data-from="0" data-to="4">
+          <p class="mstep-title"><span class="mstep-n">1</span>Uncertainty moves onto the motion</p>
+          <p class="mstep-line">In the first chunk there is no history, so the whole scene is uncertain and comes from the text prompt. Once a real history exists, it fixes the background and already satisfies the prompt, and the teacher is unsure only about how things move.</p>
         </div>
-        <div class="mstep-beat" data-from="3.5" data-to="8">
-          <p class="mstep-title"><span class="mstep-n">2</span>One answer vs. many</p>
-          <p class="mstep-line">From a certain patch, nearby noise samples all reach the same output. From an uncertain patch, they reach different poses, so the teacher's flow changes sharply.</p>
+        <div class="mstep-beat" data-from="4" data-to="8">
+          <p class="mstep-title"><span class="mstep-n">2</span>One teacher step already blurs it</p>
+          <p class="mstep-line">Given that history, a single step of the teacher from noise recovers a sharp background and leaves the moving player blurred. A few-step student has to learn a velocity field that changes sharply there.</p>
         </div>
-        <div class="mstep-beat" data-from="8" data-to="11.5">
-          <p class="mstep-title"><span class="mstep-n">3</span>A 4-step student lands in between</p>
-          <p class="mstep-line">Four large jumps follow the background, but cannot follow trajectories that split apart, so the student lands between the poses.</p>
+        <div class="mstep-beat" data-from="8" data-to="12.5">
+          <p class="mstep-title"><span class="mstep-n">3</span>CFG stops smoothing it</p>
+          <p class="mstep-line">CFG only strengthens the text prompt. It raises the teacher's smoothness by up to 7.7% in the first chunk, and by at most 0.3% in the second, where more guidance makes the field less smooth.</p>
         </div>
-        <div class="mstep-beat" data-from="11.5" data-to="15.5">
-          <p class="mstep-title"><span class="mstep-n">4</span>What it looks like</p>
-          <p class="mstep-line">A Stage-1 student distilled with CFG, on another prompt: the gym stays sharp while the runner smears and dissolves.</p>
+        <div class="mstep-beat" data-from="12.5" data-to="16.5">
+          <p class="mstep-title"><span class="mstep-n">4</span>The student loses the motion</p>
+          <p class="mstep-line">A 4-step student distilled with this target keeps the background and smears the motion.</p>
         </div>
       </div>
     </figure>
