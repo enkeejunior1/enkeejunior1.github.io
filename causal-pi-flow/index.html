@@ -104,25 +104,27 @@
     <p>An autoregressive (AR) video model generates a video chunk by chunk, and each chunk reads the previous ones through the key–value (KV) cache. FlowMap distillation (<em>π-Flow</em>, <em>dCM</em>) turns a 64-step causal teacher into a 4-step student by matching the teacher's denoising flow directly, with no extra bidirectional critic. This is how it works:</p>
 
     <!-- mstep:pipeline -->
-    <figure class="mstep" data-src="assets/motion/pipeline-steps.mp4" data-poster="assets/motion/pipeline-steps-poster.jpg" aria-label="How a FlowMap student is distilled from an autoregressive teacher, step by step.">
+    <figure class="mstep" data-src="assets/motion/pipeline-steps.mp4" data-poster="assets/motion/pipeline-steps-poster.jpg" aria-label="Teacher forcing and self-forcing, step by step.">
       <div class="mstep-words">
-        <div class="mstep-beat" data-from="0" data-to="7">
-          <p class="mstep-title"><span class="mstep-n">1</span>Stage 1: teacher forcing</p>
-          <p class="mstep-line">The student reads real video <i>x</i><sub>0</sub><sup>&lt;<i>i</i></sup> as history through the KV cache and, with its flow map, jumps from the noisy chunk <i>x</i><sub><i>t</i></sub><sup><i>i</i></sup> to a clean chunk. The guided teacher's velocity <i>v</i><sup>*</sup> along the jump is the target; this is the only place the teacher enters the loss.</p>
+        <div class="mstep-beat" data-from="0" data-to="6.5">
+          <p class="mstep-title"><span class="mstep-n">1</span>Teacher forcing</p>
+          <p class="mstep-line">The whole real video is given at once. The student reads its clean history <i>x</i><sub>0</sub><sup>&lt;<i>i</i></sup> through the KV cache and, with its flow map, jumps from the noisy chunk <i>x</i><sub><i>t</i></sub><sup><i>i</i></sup> to a clean chunk; the guided teacher's velocity <i>v</i><sup>*</sup> along the jump is the target.</p>
         </div>
-        <div class="mstep-beat" data-from="7" data-to="14">
-          <p class="mstep-title"><span class="mstep-n">2</span>Stage 2: self-forcing</p>
-          <p class="mstep-line">Same student, loss and teacher, but the history is now the student's own rollout <i>x̂</i><sub>0</sub><sup>&lt;<i>i</i></sup>, flaws included, as at test time. Each finished chunk is appended to the cache and becomes history for the next.</p>
+        <div class="mstep-beat" data-from="6.5" data-to="17.6">
+          <p class="mstep-title"><span class="mstep-n">2</span>Self-forcing</p>
+          <p class="mstep-line">Now the student generates its own history, one chunk at a time: each <i>x̂</i><sub>0</sub><sup><i>i</i></sup> is graded by the teacher and appended to the KV cache, flaws included, as at test time. The student, the loss and the teacher stay the same.</p>
         </div>
       </div>
     </figure>
     <!-- /mstep:pipeline -->
-    <p><em>Use the arrows (or the arrow keys) to step through, or click the progress bar to scrub. Frames are illustrative.</em></p>
+    <p><em>Use the arrows (or the arrow keys) to step through, or click the progress bar to scrub. Frames are illustrative; the real-video frames in teacher forcing are stand-ins.</em></p>
 
     <p>In both stages, the student is only as good as the target <i>v</i><sup>*</sup> it matches. With the standard CFG target, each stage fails in its own way:</p>
 
-    <!-- mstep:failure -->
-    <figure class="mstep" data-src="assets/motion/failure-steps.mp4" data-poster="assets/motion/failure-steps-poster.jpg" aria-label="The two failure modes of autoregressive FlowMap distillation, step by step.">
+    <h3 id="tf-failure">Analysis: TF Failure</h3>
+    <p>Teacher forcing gives the student a clean, real history, yet motion still blurs.</p>
+    <!-- mstep:tf-failure -->
+    <figure class="mstep" data-src="assets/motion/tf-failure-steps.mp4" data-poster="assets/motion/tf-failure-steps-poster.jpg" aria-label="Why teacher forcing fails on motion, step by step.">
       <div class="mstep-words">
         <div class="mstep-beat" data-from="0" data-to="4.5">
           <p class="mstep-title"><span class="mstep-n">1</span>Where is the teacher unsure?</p>
@@ -144,31 +146,40 @@
           <p class="mstep-title"><span class="mstep-n">5</span>What it looks like</p>
           <p class="mstep-line">A Stage-1 student distilled with CFG: the gym stays sharp while the runner smears and dissolves.</p>
         </div>
-        <div class="mstep-beat" data-from="23.5" data-to="28.5">
-          <p class="mstep-title"><span class="mstep-n">6</span>The teacher only saw real videos</p>
-          <p class="mstep-line">The second failure happens across chunks. The shading marks real videos, on which the teacher was trained; <i>x</i><sup>1</sup> → <i>x</i><sup>2</sup> → <i>x</i><sup>3</sup> is a real chunk-to-chunk path.</p>
-        </div>
-        <div class="mstep-beat" data-from="28.5" data-to="33">
-          <p class="mstep-title"><span class="mstep-n">7</span>The student's rollout drifts</p>
-          <p class="mstep-line">In Stage 2, small errors accumulate, and the student's own chunks <i>x̂</i><sup>2</sup>, <i>x̂</i><sup>3</sup> leave the shaded region.</p>
-        </div>
-        <div class="mstep-beat" data-from="33" data-to="38.5">
-          <p class="mstep-title"><span class="mstep-n">8</span>The teacher keeps the offset</p>
-          <p class="mstep-line">From the drifted <i>x̂</i><sup>2</sup>, the teacher <i>v</i><sub>ϕ</sub> continues parallel to the real path instead of returning to it. Matching it preserves the error.</p>
-        </div>
-        <div class="mstep-beat" data-from="38.5" data-to="43.5">
-          <p class="mstep-title"><span class="mstep-n">9</span>What it looks like</p>
-          <p class="mstep-line">A student self-forced against the plain teacher: artifacts pile up over a 30 s rollout.</p>
-        </div>
       </div>
     </figure>
-    <!-- /mstep:failure -->
+    <!-- /mstep:tf-failure -->
 
     <details>
       <summary>Analysis: why doesn't CFG fix Stage 1?</summary>
       <p>We measure how smoothly the guided teacher's velocity varies between nearby states with the normalized sensitivity <i>C</i><sub><i>v</i></sub>; a 4-step student can follow a smooth (low-<i>C</i><sub><i>v</i></sub>) field. In the first chunk, which has no history, CFG raises the smoothness 1/<i>C</i><sub><i>v</i></sub> by up to 7.7%. In the second chunk it raises it by at most 0.3% and lowers it as guidance grows.</p>
       <p>The reason is that the history already fixes the static background and largely satisfies the text prompt, so the remaining uncertainty sits in moving regions. A single teacher step from noise already gives a sharp background and a blurred moving person. CFG only strengthens the text condition and cannot steer frame-to-frame motion; uniform skip-layer guidance perturbs static and moving regions alike and saturates at +2.5%.</p>
     </details>
+
+    <h3 id="sf-failure">Analysis: SF Failure</h3>
+    <p>Self-forcing closes the train–test gap in the history, but the student's own chunks drift away from real videos.</p>
+    <!-- mstep:sf-failure -->
+    <figure class="mstep" data-src="assets/motion/sf-failure-steps.mp4" data-poster="assets/motion/sf-failure-steps-poster.jpg" aria-label="Why self-forcing drifts, step by step.">
+      <div class="mstep-words">
+        <div class="mstep-beat" data-from="0" data-to="5">
+          <p class="mstep-title"><span class="mstep-n">1</span>The teacher only saw real videos</p>
+          <p class="mstep-line">Self-forcing fails across chunks. The shading marks real videos, on which the teacher was trained; <i>x</i><sup>1</sup> → <i>x</i><sup>2</sup> → <i>x</i><sup>3</sup> is a real chunk-to-chunk path.</p>
+        </div>
+        <div class="mstep-beat" data-from="5" data-to="9.5">
+          <p class="mstep-title"><span class="mstep-n">2</span>The student's rollout drifts</p>
+          <p class="mstep-line">Small errors accumulate, and the student's own chunks <i>x̂</i><sup>2</sup>, <i>x̂</i><sup>3</sup> leave the shaded region.</p>
+        </div>
+        <div class="mstep-beat" data-from="9.5" data-to="15">
+          <p class="mstep-title"><span class="mstep-n">3</span>The teacher keeps the offset</p>
+          <p class="mstep-line">From the drifted <i>x̂</i><sup>2</sup>, the teacher <i>v</i><sub>ϕ</sub> continues parallel to the real path instead of returning to it. Matching it preserves the error.</p>
+        </div>
+        <div class="mstep-beat" data-from="15" data-to="20">
+          <p class="mstep-title"><span class="mstep-n">4</span>What it looks like</p>
+          <p class="mstep-line">A student self-forced against the plain teacher: artifacts pile up over a 30 s rollout.</p>
+        </div>
+      </div>
+    </figure>
+    <!-- /mstep:sf-failure -->
   </section>
 
   <!-- SECTION 2: METHOD -->
@@ -180,31 +191,31 @@
     <!-- mstep:motion -->
     <figure class="mstep" data-src="assets/motion/motion-steps.mp4" data-poster="assets/motion/motion-steps-poster.jpg" aria-label="Motion-aware skip-layer guidance, step by step.">
       <div class="mstep-words">
-        <div class="mstep-beat" data-from="0" data-to="4">
+        <div class="mstep-beat" data-from="0" data-to="4.5">
           <p class="mstep-title"><span class="mstep-n">1</span>The teacher's velocity</p>
-          <p class="mstep-line">The teacher reads the noisy chunk and its history and predicts a velocity <i>v</i><sub>ϕ</sub>.</p>
+          <p class="mstep-line">Starting from the TF failure: the teacher reads the noisy chunk and its history and predicts a velocity <i>v</i><sub>ϕ</sub>.</p>
         </div>
-        <div class="mstep-beat" data-from="4" data-to="9">
+        <div class="mstep-beat" data-from="4.5" data-to="9.5">
           <p class="mstep-title"><span class="mstep-n">2</span>Guidance pushes away from a weaker branch</p>
           <p class="mstep-line">The guided target <i>v</i><sup>*</sup> extrapolates away from a weaker branch <i>v</i><sub>ϕ</sub><sup>−</sup>. With CFG, the weaker branch only swaps in a negative prompt.</p>
         </div>
-        <div class="mstep-beat" data-from="9" data-to="14">
+        <div class="mstep-beat" data-from="9.5" data-to="14.5">
           <p class="mstep-title"><span class="mstep-n">3</span>Find where the teacher is unsure</p>
-          <p class="mstep-line">A small head on detached features of block ℓ predicts each patch's uncertainty <i>û</i><sub><i>p</i></sub>. Once a history exists, it lights up the moving people.</p>
+          <p class="mstep-line">A small head on detached features of block ℓ predicts each patch's uncertainty <i>û</i><sub><i>p</i></sub>, the map from the TF failure. Once a history exists, it lights up the moving people.</p>
         </div>
-        <div class="mstep-beat" data-from="14" data-to="18.5">
+        <div class="mstep-beat" data-from="14.5" data-to="19">
           <p class="mstep-title"><span class="mstep-n">4</span>Inside block ℓ of the weaker branch</p>
           <p class="mstep-line">Each patch token can go through block ℓ or skip it. With plain CFG, every patch goes through.</p>
         </div>
-        <div class="mstep-beat" data-from="18.5" data-to="23">
+        <div class="mstep-beat" data-from="19" data-to="23.5">
           <p class="mstep-title"><span class="mstep-n">5</span>Skipping everywhere</p>
           <p class="mstep-line">Standard skip-layer guidance skips the block equally for every patch, so the already settled background is perturbed too.</p>
         </div>
-        <div class="mstep-beat" data-from="23" data-to="28.5">
+        <div class="mstep-beat" data-from="23.5" data-to="29">
           <p class="mstep-title"><span class="mstep-n">6</span>Skipping where the teacher is unsure</p>
           <p class="mstep-line">We set each patch's skip strength from its uncertainty, <i>u</i><sub><i>p</i></sub>: the moving people skip the block, while the background passes through unchanged. Guidance now acts on motion.</p>
         </div>
-        <div class="mstep-beat" data-from="28.5" data-to="33.5">
+        <div class="mstep-beat" data-from="29" data-to="34">
           <p class="mstep-title"><span class="mstep-n">7</span>Sharp motion in 4 steps</p>
           <p class="mstep-line">Same prompt and noise after Stage 1: with motion-aware guidance, the runner stays sharp.</p>
         </div>
@@ -224,7 +235,7 @@
       <div class="mstep-words">
         <div class="mstep-beat" data-from="0" data-to="4">
           <p class="mstep-title"><span class="mstep-n">1</span>The teacher keeps the offset</p>
-          <p class="mstep-line">From the student's drifted chunk <i>x̂</i><sup>2</sup>, the teacher <i>v</i><sub>ϕ</sub> continues parallel to the real path.</p>
+          <p class="mstep-line">Starting from the SF failure: from the student's drifted chunk <i>x̂</i><sup>2</sup>, the teacher <i>v</i><sub>ϕ</sub> continues parallel to the real path.</p>
         </div>
         <div class="mstep-beat" data-from="4" data-to="8">
           <p class="mstep-title"><span class="mstep-n">2</span>The student's own chunks</p>
