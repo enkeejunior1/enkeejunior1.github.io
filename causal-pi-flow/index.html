@@ -64,28 +64,32 @@
   <section class="hero">
     <div class="video-showcase" data-video-showcase>
       <div class="v-controls">
-        <p class="v-hero-label">30 s rollouts, 4 NFE per chunk, all distilled from the Causal-rCM teacher</p>
+        <div class="v-tabs" role="tablist" aria-label="30-second rollout prompts">
+          <button type="button" role="tab" aria-selected="true" data-prefix="ex_chef" data-prompt="A dynamic scene captured in the style of vibrant food photography, showcasing a chef skillfully chopping onions in a kitchen (30 s rollout)">Chef in a Kitchen</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="ex_rabbit" data-prompt="A charming illustration in a watercolor style of a young white rabbit wearing glasses and reading a newspaper (30 s rollout)">Watercolor Rabbit</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="ex_corgi" data-prompt="A vibrant and lively vlog-style photo of a corgi in tropical Maui, showcasing the dog energetically filming itself on a sandy beach (30 s rollout)">Maui Corgi</button>
+        </div>
         <button type="button" class="v-sync-btn" data-sync-restart>↻ Restart in sync</button>
       </div>
       <div class="v-grid-2">
         <figure class="v-card">
-          <video src="assets/videos/rcm_pandas_causal_rcm.mp4" data-model="causal_rcm" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption><span>Causal-rCM (DMD)</span><span class="v-badge">ΔIQ −3.28</span></figcaption>
+          <video src="assets/videos/ex_chef_causal_rcm.mp4" data-model="causal_rcm" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Causal-rCM</span><span class="v-badge">4 NFE · DMD</span></figcaption>
         </figure>
         <figure class="v-card">
-          <video src="assets/videos/rcm_pandas_causal_rcm_tfscm.mp4" data-model="causal_rcm_tfscm" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption><span>Causal-rCM, TF-sCM (FlowMap)</span><span class="v-badge">ΔIQ −3.10</span></figcaption>
+          <video src="assets/videos/ex_chef_causal_forcing.mp4" data-model="causal_forcing" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Causal Forcing</span><span class="v-badge">4 NFE · DMD</span></figcaption>
         </figure>
         <figure class="v-card is-ours">
-          <video src="assets/videos/rcm_pandas_ours.mp4" data-model="ours" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption><span>Ours (π-Flow)</span><span class="v-badge">ΔIQ −1.64</span></figcaption>
+          <video src="assets/videos/ex_chef_ours.mp4" data-model="ours" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Ours (π-Flow)</span><span class="v-badge">4 NFE · FlowMap, rCM teacher</span></figcaption>
         </figure>
         <figure class="v-card is-ours">
-          <video src="assets/videos/rcm_pandas_ours_dcm.mp4" data-model="ours_dcm" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption><span>Ours (dCM)</span><span class="v-badge">ΔIQ −1.97</span></figcaption>
+          <video src="assets/videos/ex_chef_ours_dcm.mp4" data-model="ours_dcm" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Ours (dCM)</span><span class="v-badge">4 NFE · FlowMap, rCM teacher</span></figcaption>
         </figure>
       </div>
-      <p class="v-prompt-bar" data-prompt-text><strong>Prompt:</strong> &ldquo;A high-resolution digital artwork in a realistic botanical style, showcasing a petri dish where a miniature bamboo forest thrives, complete with tiny red pandas running around.&rdquo;</p>
+      <p class="v-prompt-bar" data-prompt-text><strong>Prompt:</strong> &ldquo;A dynamic scene captured in the style of vibrant food photography, showcasing a chef skillfully chopping onions in a kitchen (30 s rollout)&rdquo;</p>
     </div>
 
     <section class="project-abstract" aria-labelledby="abstract-heading">
@@ -297,87 +301,104 @@
     </div>
 
     <h3 id="vbench-barstory">Both guidance mechanisms contribute +3.15 VBench over standard CFG</h3>
-    <p>Starting from a naive CFG-only π-Flow student (81.61 VBench), adding motion-aware skip-layer guidance raises VBench to <strong>84.35</strong> (+2.74 points), and combining it with anti-drifting guidance in Stage 2 reaches <strong>84.76</strong> (+3.15 points)—surpassing both the 64-NFE causal teacher (84.46) and DMD-based Causal Forcing (84.74) without any DMD stage:</p>
+    <p>Starting from a CFG-only π-Flow student (81.61 VBench), adding motion-aware skip-layer guidance raises VBench to <strong>84.35</strong> (+2.74 points), and adding anti-drifting guidance in Stage 2 reaches <strong>84.76</strong> (+3.15 points), on par with the DMD-distilled Causal Forcing student from the same initialization (84.74). With the Causal-rCM teacher, our guidance raises VBench from 84.08 to <strong>84.87</strong>, close to Causal-rCM (84.92), whose DMD stage uses 14B teachers. Neither of ours uses DMD.</p>
 
     <figure class="barstory" data-ylabel="VBench Total ↑" data-ymin="80.5" data-ymax="86.0" data-ystep="1">
-      <div class="barstory-series" data-name="Baseline FlowMap (CFG only)" data-style="base" data-phase="Baseline 4-NFE FlowMap (CFG only)"></div>
-      <div class="barstory-series" data-name="+ Our Guidance (Ours)" data-style="corr" data-from="0" data-delta="points" data-phase="+ Motion-Aware &amp; Anti-Drifting Guidance (Ours)"></div>
-      <div class="barstory-series" data-name="64-NFE AR Teacher (CFG)" data-style="cfg" data-phase="Surpassing the 64-NFE AR Teacher &amp; matching DMD"></div>
-      <div class="barstory-group" data-name="π-Flow (CF Teacher)" data-values="81.61,84.76,84.46"></div>
-      <div class="barstory-group" data-name="π-Flow (rCM Teacher)" data-values="84.08,84.87,84.38"></div>
+      <div class="barstory-series" data-name="FlowMap, CFG only" data-style="base" data-phase="4-NFE π-Flow student distilled with CFG only"></div>
+      <div class="barstory-series" data-name="+ our guidance (Ours)" data-style="corr" data-from="0" data-delta="points" data-phase="+ motion-aware &amp; anti-drifting guidance (Ours)"></div>
+      <div class="barstory-series" data-name="DMD baseline, same init" data-style="cfg" data-phase="On par with the DMD baselines, without DMD"></div>
+      <div class="barstory-group" data-name="Causal Forcing init" data-values="81.61,84.76,84.74"></div>
+      <div class="barstory-group" data-name="Causal-rCM init" data-values="84.08,84.87,84.92"></div>
     </figure>
-    <p><em>5-second VBench Total score (five-seed mean across 946 extended prompts) for 4-NFE chunk-wise students vs. their 64-NFE causal AR teachers. Click &ldquo;Replay&rdquo; to replay the animation.</em></p>
+    <p><em>5-second VBench Total (five-seed mean over 946 extended prompts) of chunk-wise 4-NFE students. The DMD baselines are the official Causal Forcing and Causal-rCM checkpoints. Click &ldquo;Replay&rdquo; to replay the animation.</em></p>
 
-    <div class="table-scroll" tabindex="0" aria-label="Main 5-second quantitative comparison table">
+    <div class="table-tabs" data-table-tabs>
       <!-- table:main -->
+      <div class="v-tabs" role="tablist" aria-label="Setting"><button type="button" role="tab" aria-selected="true" data-table="Chunk-wise">Chunk-wise</button><button type="button" role="tab" aria-selected="false" data-table="Frame-wise">Frame-wise</button></div>
+      <div class="table-scroll" tabindex="0" data-table-panel="Chunk-wise">
       <table>
         <thead>
-          <tr><th>Setting</th><th>Init</th><th>Method</th><th>Type</th><th>Teacher</th><th>NFE</th><th>VBench Total ↑</th><th>Quality ↑</th><th>Semantic ↑</th><th>Dynamic ↑</th><th>V-JEPA 2 Cos ↑</th><th>VideoMAE V2 Cos ↑</th></tr>
+          <tr><th>Method</th><th>Init</th><th>Type</th><th>Teacher</th><th>NFE</th><th>VBench Total ↑</th><th>Quality ↑</th><th>Semantic ↑</th><th>Dynamic ↑</th><th>V-JEPA 2 ↑</th><th>VideoMAE V2 ↑</th></tr>
         </thead>
         <tbody>
-          <tr><td>Chunk-wise</td><td>Self Forcing</td><td>Self Forcing<sup>†</sup></td><td>DMD</td><td>14B</td><td>4</td><td class="r4">84.22</td><td class="r4">84.83</td><td class="r4">81.81</td><td class="r4">66.1</td><td class="r4">0.0555</td><td class="r4">0.0117</td></tr>
-          <tr class="is-ref"><td>Chunk-wise</td><td>Causal Forcing</td><td>AR teacher, CFG</td><td>—</td><td>—</td><td>32×2</td><td class="ref">84.46</td><td class="ref">85.11</td><td class="ref">81.86</td><td class="ref">77.8</td><td class="ref">0.0882</td><td class="ref">0.0236</td></tr>
-          <tr><td>Chunk-wise</td><td>Causal Forcing</td><td>Causal Forcing<sup>†</sup></td><td>DMD</td><td>14B</td><td>4</td><td class="r4">84.74</td><td class="r4">85.41</td><td class="r2">82.02</td><td class="r2">83.9</td><td class="r4">0.0745</td><td class="r3">0.0198</td></tr>
-          <tr class="is-ours"><td>Chunk-wise</td><td>Causal Forcing</td><td class="ours">Ours (π-Flow)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r3">84.76</td><td class="r1">85.83</td><td class="r4">80.46</td><td class="r1">88.3</td><td class="r1">0.0964</td><td class="r1">0.0281</td></tr>
-          <tr class="is-ours"><td>Chunk-wise</td><td>Causal Forcing</td><td class="ours">Ours (dCM)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">83.70</td><td class="r4">84.55</td><td class="r4">80.32</td><td class="r4">69.7</td><td class="r2">0.0875</td><td class="r2">0.0241</td></tr>
-          <tr class="is-ref"><td>Chunk-wise</td><td>Causal-rCM</td><td>AR teacher, CFG</td><td>—</td><td>—</td><td>32×2</td><td class="ref">84.38</td><td class="ref">84.85</td><td class="ref">82.47</td><td class="ref">65.0</td><td class="ref">0.0624</td><td class="ref">0.0128</td></tr>
-          <tr><td>Chunk-wise</td><td>Causal-rCM</td><td>Causal-rCM<sup>†</sup></td><td>DMD</td><td>14B<sup>AR</sup>, 14B</td><td>4</td><td class="r1">84.92</td><td class="r3">85.44</td><td class="r1">82.82</td><td class="r3">81.1</td><td class="r4">0.0666</td><td class="r4">0.0166</td></tr>
-          <tr><td>Chunk-wise</td><td>Causal-rCM</td><td>Causal-rCM, TF-sCM<sup>†</sup></td><td>FlowMap</td><td>14B<sup>AR</sup></td><td>4</td><td class="r4">83.78</td><td class="r4">84.49</td><td class="r4">80.92</td><td class="r4">67.5</td><td class="r3">0.0789</td><td class="r4">0.0182</td></tr>
-          <tr class="is-ours"><td>Chunk-wise</td><td>Causal-rCM</td><td class="ours">Ours (π-Flow)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r2">84.87</td><td class="r2">85.76</td><td class="r4">81.29</td><td class="r4">71.4</td><td class="r4">0.0735</td><td class="r4">0.0143</td></tr>
-          <tr class="is-ours"><td>Chunk-wise</td><td>Causal-rCM</td><td class="ours">Ours (dCM)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">84.54</td><td class="r4">85.20</td><td class="r3">81.91</td><td class="r4">68.3</td><td class="r4">0.0634</td><td class="r4">0.0122</td></tr>
-          <tr class="is-ref"><td>Frame-wise</td><td>Causal Forcing</td><td>AR teacher, CFG</td><td>—</td><td>—</td><td>32×2</td><td class="ref">82.84</td><td class="ref">83.38</td><td class="ref">80.68</td><td class="ref">88.6</td><td class="ref">0.0944</td><td class="ref">0.0306</td></tr>
-          <tr><td>Frame-wise</td><td>Causal Forcing</td><td>Causal Forcing<sup>†</sup></td><td>DMD</td><td>14B</td><td>4</td><td class="r4">82.79</td><td class="r4">83.52</td><td class="r4">79.87</td><td class="r1">98.6</td><td class="r4">0.0514</td><td class="r4">0.0153</td></tr>
-          <tr><td>Frame-wise</td><td>Causal Forcing</td><td>Causal Forcing++<sup>†</sup></td><td>DMD</td><td>14B</td><td>2</td><td class="r1">84.55</td><td class="r2">85.25</td><td class="r1">81.75</td><td class="r4">63.9</td><td class="r4">0.0608</td><td class="r4">0.0102</td></tr>
-          <tr class="is-ours"><td>Frame-wise</td><td>Causal Forcing</td><td class="ours">Ours (π-Flow)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">83.35</td><td class="r4">84.48</td><td class="r4">78.83</td><td class="r4">64.7</td><td class="r3">0.0800</td><td class="r4">0.0179</td></tr>
-          <tr class="is-ours"><td>Frame-wise</td><td>Causal Forcing</td><td class="ours">Ours (dCM)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">82.97</td><td class="r4">83.96</td><td class="r4">78.99</td><td class="r4">68.9</td><td class="r1">0.0940</td><td class="r1">0.0276</td></tr>
-          <tr class="is-ref"><td>Frame-wise</td><td>Causal-rCM</td><td>AR teacher, CFG</td><td>—</td><td>—</td><td>32×2</td><td class="ref">83.84</td><td class="ref">84.51</td><td class="ref">81.19</td><td class="ref">77.8</td><td class="ref">0.0659</td><td class="ref">0.0165</td></tr>
-          <tr><td>Frame-wise</td><td>Causal-rCM</td><td>Causal-rCM<sup>†</sup></td><td>DMD</td><td>14B<sup>AR</sup>, 14B</td><td>4</td><td class="r2">84.46</td><td class="r1">85.26</td><td class="r2">81.27</td><td class="r4">67.5</td><td class="r4">0.0670</td><td class="r4">0.0117</td></tr>
-          <tr><td>Frame-wise</td><td>Causal-rCM</td><td>Causal-rCM, TF-sCM<sup>†</sup></td><td>FlowMap</td><td>14B<sup>AR</sup></td><td>4</td><td class="r4">82.94</td><td class="r4">84.12</td><td class="r4">78.21</td><td class="r3">71.4</td><td class="r2">0.0856</td><td class="r2">0.0216</td></tr>
-          <tr class="is-ours"><td>Frame-wise</td><td>Causal-rCM</td><td class="ours">Ours (π-Flow)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r3">84.04</td><td class="r3">85.10</td><td class="r4">79.80</td><td class="r2">73.9</td><td class="r4">0.0733</td><td class="r3">0.0185</td></tr>
-          <tr class="is-ours"><td>Frame-wise</td><td>Causal-rCM</td><td class="ours">Ours (dCM)</td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">83.78</td><td class="r4">84.64</td><td class="r3">80.33</td><td class="r4">60.8</td><td class="r4">0.0715</td><td class="r4">0.0148</td></tr>
+          <tr class="grp"><td colspan="11">Baselines (official checkpoints)</td></tr>
+          <tr><td>Self Forcing<sup>†</sup></td><td><span class="cite" title="Self Forcing">[1]</span></td><td>DMD</td><td>14B</td><td>4</td><td class="r4">84.22</td><td class="r4">84.83</td><td class="r4">81.81</td><td class="r4">66.1</td><td class="r4">0.0555</td><td class="r4">0.0117</td></tr>
+          <tr><td>Causal Forcing<sup>†</sup></td><td><span class="cite" title="Causal Forcing">[2]</span></td><td>DMD</td><td>14B</td><td>4</td><td class="r4">84.74</td><td class="r4">85.41</td><td class="r2">82.02</td><td class="r2">83.9</td><td class="r4">0.0745</td><td class="r3">0.0198</td></tr>
+          <tr><td>Causal-rCM<sup>†</sup></td><td><span class="cite" title="Causal-rCM">[3]</span></td><td>DMD</td><td>14B<sup>AR</sup>, 14B</td><td>4</td><td class="r1">84.92</td><td class="r3">85.44</td><td class="r1">82.82</td><td class="r3">81.1</td><td class="r4">0.0666</td><td class="r4">0.0166</td></tr>
+          <tr><td>Causal-rCM, TF-sCM<sup>†</sup></td><td><span class="cite" title="Causal-rCM">[3]</span></td><td>FlowMap</td><td>14B<sup>AR</sup></td><td>4</td><td class="r4">83.78</td><td class="r4">84.49</td><td class="r4">80.92</td><td class="r4">67.5</td><td class="r3">0.0789</td><td class="r4">0.0182</td></tr>
+          <tr class="grp"><td colspan="11">Ours, initialized from Causal Forcing <span class="cite" title="Causal Forcing">[2]</span></td></tr>
+          <tr class="is-ours"><td class="ours">Ours (π-Flow)</td><td><span class="cite" title="Causal Forcing">[2]</span></td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r3">84.76</td><td class="r1">85.83</td><td class="r4">80.46</td><td class="r1">88.3</td><td class="r1">0.0964</td><td class="r1">0.0281</td></tr>
+          <tr class="is-ours"><td class="ours">Ours (dCM)</td><td><span class="cite" title="Causal Forcing">[2]</span></td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">83.70</td><td class="r4">84.55</td><td class="r4">80.32</td><td class="r4">69.7</td><td class="r2">0.0875</td><td class="r2">0.0241</td></tr>
+          <tr class="is-ref"><td>AR teacher (CFG)</td><td><span class="cite" title="Causal Forcing">[2]</span></td><td>—</td><td>—</td><td>32×2</td><td class="ref">84.46</td><td class="ref">85.11</td><td class="ref">81.86</td><td class="ref">77.8</td><td class="ref">0.0882</td><td class="ref">0.0236</td></tr>
+          <tr class="grp"><td colspan="11">Ours, initialized from Causal-rCM <span class="cite" title="Causal-rCM">[3]</span></td></tr>
+          <tr class="is-ours"><td class="ours">Ours (π-Flow)</td><td><span class="cite" title="Causal-rCM">[3]</span></td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r2">84.87</td><td class="r2">85.76</td><td class="r4">81.29</td><td class="r4">71.4</td><td class="r4">0.0735</td><td class="r4">0.0143</td></tr>
+          <tr class="is-ours"><td class="ours">Ours (dCM)</td><td><span class="cite" title="Causal-rCM">[3]</span></td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">84.54</td><td class="r4">85.20</td><td class="r3">81.91</td><td class="r4">68.3</td><td class="r4">0.0634</td><td class="r4">0.0122</td></tr>
+          <tr class="is-ref"><td>AR teacher (CFG)</td><td><span class="cite" title="Causal-rCM">[3]</span></td><td>—</td><td>—</td><td>32×2</td><td class="ref">84.38</td><td class="ref">84.85</td><td class="ref">82.47</td><td class="ref">65.0</td><td class="ref">0.0624</td><td class="ref">0.0128</td></tr>
         </tbody>
       </table>
+      </div>
+      <div class="table-scroll" tabindex="0" data-table-panel="Frame-wise" hidden>
+      <table>
+        <thead>
+          <tr><th>Method</th><th>Init</th><th>Type</th><th>Teacher</th><th>NFE</th><th>VBench Total ↑</th><th>Quality ↑</th><th>Semantic ↑</th><th>Dynamic ↑</th><th>V-JEPA 2 ↑</th><th>VideoMAE V2 ↑</th></tr>
+        </thead>
+        <tbody>
+          <tr class="grp"><td colspan="11">Baselines (official checkpoints)</td></tr>
+          <tr><td>Causal Forcing<sup>†</sup></td><td><span class="cite" title="Causal Forcing">[2]</span></td><td>DMD</td><td>14B</td><td>4</td><td class="r4">82.79</td><td class="r4">83.52</td><td class="r4">79.87</td><td class="r1">98.6</td><td class="r4">0.0514</td><td class="r4">0.0153</td></tr>
+          <tr><td>Causal Forcing++<sup>†</sup> <span class="cite" title="Causal Forcing++">[4]</span></td><td><span class="cite" title="Causal Forcing">[2]</span></td><td>DMD</td><td>14B</td><td>2</td><td class="r1">84.55</td><td class="r2">85.25</td><td class="r1">81.75</td><td class="r4">63.9</td><td class="r4">0.0608</td><td class="r4">0.0102</td></tr>
+          <tr><td>Causal-rCM<sup>†</sup></td><td><span class="cite" title="Causal-rCM">[3]</span></td><td>DMD</td><td>14B<sup>AR</sup>, 14B</td><td>4</td><td class="r2">84.46</td><td class="r1">85.26</td><td class="r2">81.27</td><td class="r4">67.5</td><td class="r4">0.0670</td><td class="r4">0.0117</td></tr>
+          <tr><td>Causal-rCM, TF-sCM<sup>†</sup></td><td><span class="cite" title="Causal-rCM">[3]</span></td><td>FlowMap</td><td>14B<sup>AR</sup></td><td>4</td><td class="r4">82.94</td><td class="r4">84.12</td><td class="r4">78.21</td><td class="r3">71.4</td><td class="r2">0.0856</td><td class="r2">0.0216</td></tr>
+          <tr class="grp"><td colspan="11">Ours, initialized from Causal Forcing <span class="cite" title="Causal Forcing">[2]</span></td></tr>
+          <tr class="is-ours"><td class="ours">Ours (π-Flow)</td><td><span class="cite" title="Causal Forcing">[2]</span></td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">83.35</td><td class="r4">84.48</td><td class="r4">78.83</td><td class="r4">64.7</td><td class="r3">0.0800</td><td class="r4">0.0179</td></tr>
+          <tr class="is-ours"><td class="ours">Ours (dCM)</td><td><span class="cite" title="Causal Forcing">[2]</span></td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">82.97</td><td class="r4">83.96</td><td class="r4">78.99</td><td class="r4">68.9</td><td class="r1">0.0940</td><td class="r1">0.0276</td></tr>
+          <tr class="is-ref"><td>AR teacher (CFG)</td><td><span class="cite" title="Causal Forcing">[2]</span></td><td>—</td><td>—</td><td>32×2</td><td class="ref">82.84</td><td class="ref">83.38</td><td class="ref">80.68</td><td class="ref">88.6</td><td class="ref">0.0944</td><td class="ref">0.0306</td></tr>
+          <tr class="grp"><td colspan="11">Ours, initialized from Causal-rCM <span class="cite" title="Causal-rCM">[3]</span></td></tr>
+          <tr class="is-ours"><td class="ours">Ours (π-Flow)</td><td><span class="cite" title="Causal-rCM">[3]</span></td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r3">84.04</td><td class="r3">85.10</td><td class="r4">79.80</td><td class="r2">73.9</td><td class="r4">0.0733</td><td class="r3">0.0185</td></tr>
+          <tr class="is-ours"><td class="ours">Ours (dCM)</td><td><span class="cite" title="Causal-rCM">[3]</span></td><td>FlowMap</td><td>1.3B<sup>AR</sup></td><td>4</td><td class="r4">83.78</td><td class="r4">84.64</td><td class="r3">80.33</td><td class="r4">60.8</td><td class="r4">0.0715</td><td class="r4">0.0148</td></tr>
+          <tr class="is-ref"><td>AR teacher (CFG)</td><td><span class="cite" title="Causal-rCM">[3]</span></td><td>—</td><td>—</td><td>32×2</td><td class="ref">83.84</td><td class="ref">84.51</td><td class="ref">81.19</td><td class="ref">77.8</td><td class="ref">0.0659</td><td class="ref">0.0165</td></tr>
+        </tbody>
+      </table>
+      </div>
       <!-- /table:main -->
     </div>
-    <p><em><strong>Table 1:</strong> 4-NFE AR students on Wan2.1-1.3B. VBench scores and dynamic degree are five-seed means over the 946 extended prompts; the diversity columns are the mean pairwise feature distance (1 − cos) among five videos per prompt. Init is the work that released the causal 1.3B checkpoint the student starts from, Type is the distillation of its final stage, and Teacher is the model it is distilled from (<sup>AR</sup>: causal). <sup>†</sup>Our evaluation of the official checkpoint. Within the chunk-wise and frame-wise settings, cells are colored from dark to light: <span class="r1">best</span>, <span class="r2">second</span>, <span class="r3">third</span>, <span class="r4">the rest</span>; the AR teachers are shown in <span class="ref">gray</span> and are not ranked.</em></p>
+    <p><em><strong>Table 1:</strong> 4-NFE AR students on Wan2.1-1.3B; switch between the chunk-wise and frame-wise settings above. VBench scores and dynamic degree are five-seed means over the 946 extended prompts; V-JEPA 2 and VideoMAE V2 measure diversity as the mean pairwise feature distance (1 − cos) among five videos per prompt. Init is the causal 1.3B checkpoint the model starts from, Type is the distillation of its final stage, and Teacher is the model it is distilled from (<sup>AR</sup>: causal). <sup>†</sup>Our evaluation of the official checkpoint. Within each setting, cells are colored from dark to light: <span class="r1">best</span>, <span class="r2">second</span>, <span class="r3">third</span>, <span class="r4">the rest</span>; the 64-NFE AR teachers are shown in <span class="ref">gray</span> for reference and are not ranked.<br>
+    [1] Self Forcing (Huang et al.) &nbsp; [2] Causal Forcing (Zhu et al.) &nbsp; [3] Causal-rCM (Zheng et al.) &nbsp; [4] Causal Forcing++ (Zhao et al.)</em></p>
   </section>
 
   <!-- SECTION 4: 30s LONG VIDEO ROLLOUTS -->
   <section class="content-section" id="long-results" data-section="30s Long Rollouts">
     <h2>30-Second Long-Video Generation</h2>
-    <p>We generate 30-second videos (501 frames) for the 128 MovieGen prompts of Deep Forcing, using its KV-cache management. With the Causal-rCM teacher, our students drift the least: imaging quality drops by −1.64 (π-Flow) and −1.97 (dCM) over 30 s, against −3.28 for Causal-rCM (DMD) and −3.10 for its FlowMap variant TF-sCM. Our π-Flow student also has the highest aesthetic quality (62.13 vs. 61.41 for Causal-rCM) and higher imaging quality (67.41 vs. 65.92).</p>
+    <p>We generate 30-second videos (501 frames) for the 128 MovieGen prompts of Deep Forcing, using its KV-cache management. Distilled from the Causal-rCM teacher without DMD, our students lose less imaging quality over 30 s than Causal-rCM (ΔIQ −1.64 for π-Flow and −1.97 for dCM vs. −3.28), and our π-Flow student has the highest aesthetic quality of all students (62.13 AQ). Causal Forcing keeps its imaging quality slightly better (ΔIQ −1.44) but has lower aesthetic quality (58.71) and a larger aesthetic drop (ΔAQ −5.59 vs. −3.83 for ours).</p>
 
     <div class="video-showcase" data-video-showcase>
       <div class="v-controls">
         <div class="v-tabs" role="tablist" aria-label="30-second rollout prompts">
-          <button type="button" role="tab" aria-selected="true" data-prefix="rcm_pandas" data-prompt="A high-resolution digital artwork in a realistic botanical style, showcasing a petri dish where a miniature bamboo forest thrives, complete with tiny red pandas running around.">Red Pandas in a Petri Dish</button>
-          <button type="button" role="tab" aria-selected="false" data-prefix="rcm_western" data-prompt="A cinematic scene from a classic western movie, featuring a rugged man riding a powerful horse through the vast Gobi Desert at sunset.">Western Rider</button>
-          <button type="button" role="tab" aria-selected="false" data-prefix="rcm_puppies" data-prompt="A winter scene in a snowy forest, where a litter of playful golden retriever puppies emerge from the snow.">Puppies in the Snow</button>
-          <button type="button" role="tab" aria-selected="false" data-prefix="rcm_cloak" data-prompt="An aerial view shot of a cloaked figure soaring through the sky amidst towering skyscrapers.">Cloaked Flyer</button>
+          <button type="button" role="tab" aria-selected="true" data-prefix="ex_grandma" data-prompt="A cinematic photograph in the style of a warm family moment, capturing a grandmother with neatly combed grey hair standing behind a colorful birthday cake (30 s rollout)">Grandmother &amp; Cake</button>
+          <button type="button" role="tab" aria-selected="false" data-prefix="ex_gpanda" data-prompt="A vibrant and lively illustration in a cartoon style of a panda playing the guitar (30 s rollout)">Guitar Panda</button>
         </div>
         <button type="button" class="v-sync-btn" data-sync-restart>↻ Restart in sync</button>
       </div>
       <div class="v-grid-4">
         <figure class="v-card">
-          <video src="assets/videos/rcm_pandas_causal_rcm.mp4" data-model="causal_rcm" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption><span>Causal-rCM (DMD)</span><span class="v-badge">ΔIQ −3.28</span></figcaption>
+          <video src="assets/videos/ex_grandma_causal_rcm.mp4" data-model="causal_rcm" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Causal-rCM</span><span class="v-badge">4 NFE · DMD</span></figcaption>
         </figure>
         <figure class="v-card">
-          <video src="assets/videos/rcm_pandas_causal_rcm_tfscm.mp4" data-model="causal_rcm_tfscm" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption><span>Causal-rCM, TF-sCM</span><span class="v-badge">ΔIQ −3.10</span></figcaption>
+          <video src="assets/videos/ex_grandma_causal_forcing.mp4" data-model="causal_forcing" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Causal Forcing</span><span class="v-badge">4 NFE · DMD</span></figcaption>
         </figure>
         <figure class="v-card is-ours">
-          <video src="assets/videos/rcm_pandas_ours.mp4" data-model="ours" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption><span>Ours (π-Flow)</span><span class="v-badge">ΔIQ −1.64</span></figcaption>
+          <video src="assets/videos/ex_grandma_ours.mp4" data-model="ours" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Ours (π-Flow)</span><span class="v-badge">4 NFE · FlowMap, rCM teacher</span></figcaption>
         </figure>
         <figure class="v-card is-ours">
-          <video src="assets/videos/rcm_pandas_ours_dcm.mp4" data-model="ours_dcm" autoplay loop muted playsinline preload="metadata"></video>
-          <figcaption><span>Ours (dCM)</span><span class="v-badge">ΔIQ −1.97</span></figcaption>
+          <video src="assets/videos/ex_grandma_ours_dcm.mp4" data-model="ours_dcm" autoplay loop muted playsinline preload="metadata"></video>
+          <figcaption><span>Ours (dCM)</span><span class="v-badge">4 NFE · FlowMap, rCM teacher</span></figcaption>
         </figure>
       </div>
-      <p class="v-prompt-bar" data-prompt-text><strong>Prompt:</strong> &ldquo;A high-resolution digital artwork in a realistic botanical style, showcasing a petri dish where a miniature bamboo forest thrives, complete with tiny red pandas running around.&rdquo;</p>
+      <p class="v-prompt-bar" data-prompt-text><strong>Prompt:</strong> &ldquo;A cinematic photograph in the style of a warm family moment, capturing a grandmother with neatly combed grey hair standing behind a colorful birthday cake (30 s rollout)&rdquo;</p>
     </div>
-    <p><em>All four students are distilled from the Causal-rCM teacher and sample each chunk in 4 NFE; seed 0, generated with Deep Forcing. The badges are the dataset-level ΔIQ from Table 2.</em></p>
+    <p><em>30 s rollouts generated with Deep Forcing, seed 0. Both of ours are distilled from the Causal-rCM teacher and sample each chunk in 4 NFE without guidance.</em></p>
 
     <div class="table-scroll" tabindex="0" aria-label="30-second VBench-Long results table">
       <!-- table:long -->
@@ -387,13 +408,13 @@
         </thead>
         <tbody>
           <tr><td>—</td><td>Self Forcing<sup>†</sup></td><td class="r4">60.8</td><td class="r3">61.18</td><td class="r1">69.30</td><td class="r1">−0.76</td><td class="r1">−2.00</td></tr>
-          <tr><td>—</td><td>Causal Forcing<sup>†</sup></td><td class="r2">81.7</td><td class="r4">58.71</td><td class="r2">68.92</td><td class="r2">−1.44</td><td class="r4">−5.59</td></tr>
-          <tr class="is-ours"><td>—</td><td class="ours">Ours (π-Flow)</td><td class="r1">82.1</td><td class="r4">57.92</td><td class="r4">64.62</td><td class="r4">−4.94</td><td class="r4">−6.80</td></tr>
-          <tr class="is-ours"><td>—</td><td class="ours">Ours (dCM)</td><td class="r4">49.4</td><td class="r4">54.89</td><td class="r4">62.04</td><td class="r4">−9.01</td><td class="r4">−11.56</td></tr>
-          <tr><td>—</td><td>Causal-rCM<sup>†</sup></td><td class="r3">65.6</td><td class="r2">61.41</td><td class="r4">65.92</td><td class="r4">−3.28</td><td class="r4">−4.06</td></tr>
-          <tr><td>—</td><td>Causal-rCM, TF-sCM<sup>†</sup></td><td class="r4">48.6</td><td class="r4">58.80</td><td class="r4">65.29</td><td class="r4">−3.10</td><td class="r4">−5.08</td></tr>
-          <tr class="is-ours"><td>—</td><td class="ours">Ours (π-Flow)</td><td class="r4">41.1</td><td class="r1">62.13</td><td class="r4">67.41</td><td class="r3">−1.64</td><td class="r2">−3.83</td></tr>
-          <tr class="is-ours"><td>—</td><td class="ours">Ours (dCM)</td><td class="r4">41.3</td><td class="r4">60.27</td><td class="r3">68.25</td><td class="r4">−1.97</td><td class="r3">−4.01</td></tr>
+          <tr><td>Causal Forcing</td><td>Causal Forcing<sup>†</sup></td><td class="r2">81.7</td><td class="r4">58.71</td><td class="r2">68.92</td><td class="r2">−1.44</td><td class="r4">−5.59</td></tr>
+          <tr class="is-ours"><td>Causal Forcing</td><td class="ours">Ours (π-Flow)</td><td class="r1">82.1</td><td class="r4">57.92</td><td class="r4">64.62</td><td class="r4">−4.94</td><td class="r4">−6.80</td></tr>
+          <tr class="is-ours"><td>Causal Forcing</td><td class="ours">Ours (dCM)</td><td class="r4">49.4</td><td class="r4">54.89</td><td class="r4">62.04</td><td class="r4">−9.01</td><td class="r4">−11.56</td></tr>
+          <tr><td>Causal-rCM</td><td>Causal-rCM<sup>†</sup></td><td class="r3">65.6</td><td class="r2">61.41</td><td class="r4">65.92</td><td class="r4">−3.28</td><td class="r4">−4.06</td></tr>
+          <tr><td>Causal-rCM</td><td>Causal-rCM, TF-sCM<sup>†</sup></td><td class="r4">48.6</td><td class="r4">58.80</td><td class="r4">65.29</td><td class="r4">−3.10</td><td class="r4">−5.08</td></tr>
+          <tr class="is-ours"><td>Causal-rCM</td><td class="ours">Ours (π-Flow)</td><td class="r4">41.1</td><td class="r1">62.13</td><td class="r4">67.41</td><td class="r3">−1.64</td><td class="r2">−3.83</td></tr>
+          <tr class="is-ours"><td>Causal-rCM</td><td class="ours">Ours (dCM)</td><td class="r4">41.3</td><td class="r4">60.27</td><td class="r3">68.25</td><td class="r4">−1.97</td><td class="r3">−4.01</td></tr>
         </tbody>
       </table>
       <!-- /table:long -->

@@ -58,6 +58,16 @@
     }
   });
 
+  // Tabbed tables (one panel per setting)
+  document.querySelectorAll('[data-table-tabs]').forEach(root => {
+    const tabs = [...root.querySelectorAll('[data-table]')];
+    const panels = [...root.querySelectorAll('[data-table-panel]')];
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+      tabs.forEach(t => t.setAttribute('aria-selected', String(t === tab)));
+      panels.forEach(p => { p.hidden = p.dataset.tablePanel !== tab.dataset.table; });
+    }));
+  });
+
   // Autoplay/pause non-stepper videos when scrolled into view
   const plainVideos = [...document.querySelectorAll('video:not(.mstep video)')];
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
